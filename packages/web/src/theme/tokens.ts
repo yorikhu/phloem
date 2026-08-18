@@ -27,6 +27,8 @@ export const tokens = {
   // ── Accent (restrained, only for primary actions) ──
   accent: '#6b8cff',
   accentHover: '#8aa3ff',
+  accentLight: '#a3b8ff',
+  accentDeep: '#3d5199',
   accentDim: 'rgba(107, 140, 255, 0.12)',
 
   // ── Status (muted) ──

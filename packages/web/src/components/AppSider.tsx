@@ -15,6 +15,7 @@ import {
   GithubOutlined,
 } from '@ant-design/icons';
 import { useNavigate, useLocation } from 'react-router-dom';
+import PixelSprout from './PixelSprout';
 
 const { Sider } = Layout;
 
@@ -60,23 +61,7 @@ export default function AppSider() {
           borderBottom: '1px solid var(--ph-border-subtle)',
         }}
       >
-        <div
-          style={{
-            width: 24,
-            height: 24,
-            borderRadius: 4,
-            background: 'var(--ph-accent)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            fontSize: 13,
-            fontWeight: 700,
-            color: '#0d0d0d',
-            flexShrink: 0,
-          }}
-        >
-          P
-        </div>
+        <PixelSprout size={24} />
         {!collapsed && (
           <span
             style={{

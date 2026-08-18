@@ -13,6 +13,8 @@
   --ph-text-tertiary: #666666;
   --ph-accent: #6b8cff;
   --ph-accent-hover: #8aa3ff;
+  --ph-accent-light: #a3b8ff;
+  --ph-accent-deep: #3d5199;
   --ph-accent-dim: rgba(107, 140, 255, 0.12);
   --ph-success: #5ec891;
   --ph-warning: #e8a838;
