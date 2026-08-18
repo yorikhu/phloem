@@ -42,6 +42,7 @@ export const en = {
   'settings.hotkeysConflict': 'Already used by “{action}”',
   'settings.hotkeysReset': 'Reset shortcuts',
   'settings.hotkeySearch': 'Global search',
+  'settings.hotkeyNewline': 'New line (composer)',
   'settings.hotkeyNavigate': 'Navigate results',
   'settings.draftHint': 'Changes apply only after you save.',
 
@@ -167,6 +168,7 @@ export const zh: Dict = {
   'settings.hotkeysConflict': '已被「{action}」占用',
   'settings.hotkeysReset': '重置快捷键',
   'settings.hotkeySearch': '全局搜索',
+  'settings.hotkeyNewline': '换行（检索输入框）',
   'settings.hotkeyNavigate': '结果导航',
   'settings.draftHint': '修改需保存后才会生效。',
 

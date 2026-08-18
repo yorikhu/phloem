@@ -26,8 +26,9 @@ import { loadDraft, saveDraft, clearDraft, type SettingsSnapshot } from '../sett
 
 type Recording = { action: HotkeyAction } | null;
 
-const HOTKEY_ROWS: { action: HotkeyAction; labelKey: 'settings.hotkeySearch' }[] = [
+const HOTKEY_ROWS: { action: HotkeyAction; labelKey: DictKey }[] = [
   { action: 'openSearch', labelKey: 'settings.hotkeySearch' },
+  { action: 'composerNewline', labelKey: 'settings.hotkeyNewline' },
 ];
 
 export default function SettingsModal({ open, onClose }: { open: boolean; onClose: () => void }) {

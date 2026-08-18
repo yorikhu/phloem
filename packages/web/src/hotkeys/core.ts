@@ -7,7 +7,7 @@
 
 import { isMac } from './platform.js';
 
-export type HotkeyAction = 'openSearch';
+export type HotkeyAction = 'openSearch' | 'composerNewline';
 
 export interface HotkeyDef {
   action: HotkeyAction;
@@ -20,18 +20,19 @@ export type Combo = string; // e.g. "mod+k", "mod+shift+p"
 
 export const DEFAULT_HOTKEYS: Record<HotkeyAction, Combo> = {
   openSearch: 'mod+k',
+  composerNewline: 'mod+enter',
 };
 
 export const HOTKEY_STORAGE_KEY = 'phloem.hotkeys';
 
 export function isHotkeyAction(v: unknown): v is HotkeyAction {
-  return v === 'openSearch';
+  return v === 'openSearch' || v === 'composerNewline';
 }
 
-/** Normalize a key label: letters lowercase, digits kept. */
+/** Normalize a key label: letters lowercase, digits kept, Enter supported. */
 function normKey(key: string): string | null {
   if (key.length === 1 && /[a-z0-9]/i.test(key)) return key.toLowerCase();
-  // Arrow keys / F-keys etc. could be added here when needed
+  if (key === 'Enter') return 'enter';
   return null;
 }
 
@@ -50,8 +51,14 @@ export function comboFromEvent(e: KeyboardEvent): Combo | null {
   return parts.join('+');
 }
 
+/** Minimal keyboard-event shape — accepts both native and React synthetic events. */
+export type KeyEventLike = Pick<
+  KeyboardEvent,
+  'key' | 'ctrlKey' | 'metaKey' | 'shiftKey' | 'altKey'
+>;
+
 /** True when a keyboard event matches a combo. */
-export function matchesCombo(e: KeyboardEvent, combo: Combo): boolean {
+export function matchesCombo(e: KeyEventLike, combo: Combo): boolean {
   const parts = combo.split('+');
   const key = parts[parts.length - 1];
   const needMod = parts.includes('mod');
@@ -64,11 +71,12 @@ export function matchesCombo(e: KeyboardEvent, combo: Combo): boolean {
   return e.key.toLowerCase() === key;
 }
 
-/** Human-readable combo: ⌘K / Ctrl+Shift+K etc. */
+/** Human-readable combo: ⌘K / Ctrl+Shift+K / ⌘↵ etc. */
 export function formatCombo(combo: Combo): string {
   const parts = combo.split('+');
   const key = parts.pop()!;
-  const label = key === 'arrowup' ? '↑' : key === 'arrowdown' ? '↓' : key.toUpperCase();
+  const label =
+    key === 'arrowup' ? '↑' : key === 'arrowdown' ? '↓' : key === 'enter' ? '↵' : key.toUpperCase();
   const bits: string[] = [];
   for (const p of parts) {
     if (p === 'mod') bits.push(isMac ? '⌘' : 'Ctrl');

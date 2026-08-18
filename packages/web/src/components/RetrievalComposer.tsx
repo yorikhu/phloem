@@ -19,6 +19,7 @@ import {
 } from '@ant-design/icons';
 import type { Dataset, RetrievalStrategy } from '@phloem/shared';
 import { useI18n } from '../i18n/index.js';
+import { matchesCombo, useHotkeys } from '../hotkeys/index.js';
 
 const STRATEGY_ICON: Record<RetrievalStrategy, React.ReactNode> = {
   hybrid: <ExperimentOutlined />,
@@ -148,6 +149,7 @@ export default function RetrievalComposer({
   searching,
 }: RetrievalComposerProps) {
   const { t } = useI18n();
+  const { hotkeys } = useHotkeys();
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const [scopeOpen, setScopeOpen] = useState(false);
 
@@ -253,10 +255,11 @@ export default function RetrievalComposer({
         onChange={(e) => onValueChange(e.target.value)}
         onKeyDown={(e) => {
           if (e.key !== 'Enter') return;
-          // Enter sends; Ctrl/Cmd/Shift+Enter inserts a newline. Only
-          // Shift+Enter is native in browsers, so insert the break manually
-          // (execCommand keeps the undo stack; fall back to value splice).
-          if (e.ctrlKey || e.metaKey || e.shiftKey) {
+          // Enter sends; the configured newline combo (default ⌘/Ctrl+Enter)
+          // or Shift+Enter inserts a newline. Only Shift+Enter is native in
+          // browsers, so insert the break manually (execCommand keeps the
+          // undo stack; fall back to value splice).
+          if (e.shiftKey || matchesCombo(e, hotkeys.composerNewline)) {
             e.preventDefault();
             const el = e.currentTarget;
             const inserted = document.execCommand('insertLineBreak');
