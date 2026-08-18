@@ -162,6 +162,26 @@ body {
   }
 }
 
+/* ── Voice input — pulse while listening ── */
+@keyframes ph-voice-pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.4;
+  }
+}
+
+.ph-voice-listening {
+  animation: ph-voice-pulse 1.2s ease-in-out infinite;
+}
+
+/* ── Retrieval composer ── */
+.ph-composer:focus-within {
+  border-color: var(--ph-accent);
+}
+
 /* ── AntD overrides (deep) ── */
 .ant-btn-primary {
   box-shadow: none;

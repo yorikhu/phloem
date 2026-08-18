@@ -7,7 +7,7 @@
  */
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Button, Dropdown, Select, Tooltip, message } from 'antd';
+import { Button, Dropdown, Tooltip, message } from 'antd';
 import type { MenuProps } from 'antd';
 import {
   ArrowUpOutlined,
@@ -57,7 +57,6 @@ export default function RetrievalComposer({
 }: RetrievalComposerProps) {
   const { t } = useI18n();
   const textareaRef = useRef<HTMLTextAreaElement>(null);
-  const [scopeOpen, setScopeOpen] = useState(false);
 
   // ── Auto-growing textarea ──
   useEffect(() => {
@@ -148,13 +147,7 @@ export default function RetrievalComposer({
         borderRadius: 'var(--ph-radius)',
         boxShadow: 'var(--ph-shadow-popup)',
         padding: '12px 12px 8px',
-        transition: 'border-color var(--ph-transition-fast, 120ms ease)',
-      }}
-      onFocus={(e) => {
-        e.currentTarget.style.borderColor = 'var(--ph-accent)';
-      }}
-      onBlur={(e) => {
-        if (!scopeOpen) e.currentTarget.style.borderColor = 'var(--ph-border-default)';
+        transition: 'border-color var(--ph-transition-fast)',
       }}
     >
       <textarea
@@ -195,33 +188,24 @@ export default function RetrievalComposer({
         {/* Bottom-left: scope + strategy */}
         <div style={{ display: 'flex', gap: 6, alignItems: 'center', minWidth: 0 }}>
           <Dropdown
-            open={scopeOpen}
-            onOpenChange={setScopeOpen}
             trigger={['click']}
-            popupRender={(_origin) => (
-              <div style={{ padding: 8, minWidth: 280 }}>
-                <div
-                  style={{
-                    fontSize: 12,
-                    color: 'var(--ph-text-tertiary)',
-                    marginBottom: 8,
-                    padding: '0 4px',
-                  }}
-                >
-                  {t('retrieval.datasetFilter')}
-                </div>
-                <Select
-                  mode="multiple"
-                  allowClear
-                  value={selectedDatasets}
-                  onChange={onSelectedDatasetsChange}
-                  placeholder={t('retrieval.scopeAll')}
-                  style={{ width: '100%' }}
-                  options={datasets.map((d) => ({ label: d.name, value: d.id }))}
-                  maxTagCount="responsive"
-                />
-              </div>
-            )}
+            menu={{
+              selectable: true,
+              multiple: true,
+              items: datasets.map((d) => ({
+                key: d.id,
+                label: <span style={{ fontSize: 13 }}>{d.name}</span>,
+              })),
+              selectedKeys: selectedDatasets,
+              // Selecting items toggles scope; closing menu keeps whatever is
+              // checked (empty selection = all datasets).
+              onClick: ({ key }) => {
+                const next = selectedDatasets.includes(key)
+                  ? selectedDatasets.filter((id) => id !== key)
+                  : [...selectedDatasets, key];
+                onSelectedDatasetsChange(next);
+              },
+            }}
           >
             <Button size="small" type="text" icon={<DatabaseOutlined />}>
               <span style={{ fontSize: 12, color: 'var(--ph-text-secondary)' }}>{scopeLabel}</span>
@@ -251,7 +235,7 @@ export default function RetrievalComposer({
               size="small"
               type="text"
               danger={listening}
-              icon={<AudioOutlined spin={listening} />}
+              icon={<AudioOutlined className={listening ? 'ph-voice-listening' : undefined} />}
               onClick={toggleVoice}
             />
           </Tooltip>
