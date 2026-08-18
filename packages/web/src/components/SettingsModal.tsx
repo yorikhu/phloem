@@ -5,13 +5,15 @@
  * a local draft first. Save applies + persists and clears the draft;
  * Discard throws it away. Accidental closes (Esc, mask click) keep
  * the draft — it also persists to localStorage so unsaved edits
- * survive reloads. Language previews live while the modal is open.
+ * survive reloads. The modal previews its own labels in the draft
+ * language; the rest of the app stays on the committed locale until
+ * Save commits it.
  */
 
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Modal, Button, Tooltip } from 'antd';
 import { ReloadOutlined } from '@ant-design/icons';
-import { useI18n } from '../i18n/index.js';
+import { useI18n, translate, type DictKey } from '../i18n/index.js';
 import {
   DEFAULT_HOTKEYS,
   comboFromEvent,
@@ -28,20 +30,28 @@ const HOTKEY_ROWS: { action: HotkeyAction; labelKey: 'settings.hotkeySearch' }[]
 ];
 
 export default function SettingsModal({ open, onClose }: { open: boolean; onClose: () => void }) {
-  const { t, savedLocale, previewLocale, setLocale } = useI18n();
+  const { locale, setLocale } = useI18n();
   const { hotkeys: liveHotkeys, applyAll } = useHotkeys();
   const [recording, setRecording] = useState<Recording>(null);
   const [conflict, setConflict] = useState<string | null>(null);
   const [draft, setDraft] = useState<SettingsSnapshot | null>(null);
 
   // Snapshot the modal is editing: saved draft > committed settings.
-  const current: SettingsSnapshot = draft ?? { locale: savedLocale, hotkeys: liveHotkeys };
+  const current: SettingsSnapshot = draft ?? { locale, hotkeys: liveHotkeys };
   const dirty =
     draft !== null &&
-    (draft.locale !== savedLocale ||
+    (draft.locale !== locale ||
       (Object.keys(draft.hotkeys) as HotkeyAction[]).some(
         (a) => draft.hotkeys[a] !== liveHotkeys[a],
       ));
+
+  // In-modal language preview: labels render in the draft locale while
+  // the rest of the app keeps the committed one.
+  const t = useCallback(
+    (key: DictKey, params?: Record<string, string | number>) =>
+      translate(current.locale, key, params),
+    [current.locale],
+  );
 
   // Keep the latest snapshot readable inside stable event listeners.
   const currentRef = useRef(current);
@@ -52,22 +62,14 @@ export default function SettingsModal({ open, onClose }: { open: boolean; onClos
     saveDraft(next);
   }, []);
 
-  // ── Lifecycle: load draft on open, drop preview on close ──
+  // ── Lifecycle: reset transient state on open ──
   useEffect(() => {
     if (open) {
       setDraft(loadDraft());
       setRecording(null);
       setConflict(null);
-    } else {
-      previewLocale(null);
     }
-  }, [open, previewLocale]);
-
-  // Live language preview while a draft locale exists.
-  const draftLocale = draft?.locale;
-  useEffect(() => {
-    if (open && draftLocale) previewLocale(draftLocale);
-  }, [open, draftLocale, previewLocale]);
+  }, [open]);
 
   // ── Recording: any mod-combo commits to the draft, Esc cancels ──
   useEffect(() => {
@@ -114,7 +116,6 @@ export default function SettingsModal({ open, onClose }: { open: boolean; onClos
     setDraft(null);
     setRecording(null);
     setConflict(null);
-    previewLocale(null);
     onClose();
   };
 
