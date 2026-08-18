@@ -7,7 +7,7 @@
  */
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Button, Dropdown, Tooltip, message } from 'antd';
+import { Button, Dropdown, Select, Tooltip, message } from 'antd';
 import type { MenuProps } from 'antd';
 import {
   ArrowUpOutlined,
@@ -28,6 +28,11 @@ const STRATEGY_ICON: Record<RetrievalStrategy, React.ReactNode> = {
 /** Capitalized strategy key → i18n key suffix (hybrid → Hybrid). */
 function strategyKeySuffix(s: RetrievalStrategy): string {
   return `${s[0]!.toUpperCase()}${s.slice(1)}`;
+}
+
+/** Resolve dataset id → display name (for the +N tooltip). */
+function nameOf(datasets: Dataset[], id: string): string {
+  return datasets.find((d) => d.id === id)?.name ?? id;
 }
 
 const MAX_TEXTAREA_HEIGHT = 200;
@@ -123,11 +128,6 @@ export default function RetrievalComposer({
     recognition.start();
   }, [speechSupported, onValueChange, t]);
 
-  const scopeLabel =
-    selectedDatasets.length === 0
-      ? t('retrieval.scopeAll')
-      : t('retrieval.scopeN', { count: selectedDatasets.length });
-
   const strategyLabel = (s: RetrievalStrategy) =>
     t(`retrieval.strategy${strategyKeySuffix(s)}` as never);
 
@@ -206,31 +206,32 @@ export default function RetrievalComposer({
         }}
       >
         {/* Bottom-left: scope + strategy */}
-        <div style={{ display: 'flex', gap: 6, alignItems: 'center', minWidth: 0 }}>
-          <Dropdown
-            trigger={['click']}
-            menu={{
-              selectable: true,
-              multiple: true,
-              items: datasets.map((d) => ({
-                key: d.id,
-                label: <span style={{ fontSize: 13 }}>{d.name}</span>,
-              })),
-              selectedKeys: selectedDatasets,
-              // Selecting items toggles scope; closing menu keeps whatever is
-              // checked (empty selection = all datasets).
-              onClick: ({ key }) => {
-                const next = selectedDatasets.includes(key)
-                  ? selectedDatasets.filter((id) => id !== key)
-                  : [...selectedDatasets, key];
-                onSelectedDatasetsChange(next);
-              },
+        <div style={{ display: 'flex', gap: 6, alignItems: 'center', minWidth: 0, flex: 1 }}>
+          <Select
+            mode="multiple"
+            allowClear
+            showSearch
+            size="small"
+            placeholder={t('retrieval.scopeAll')}
+            value={selectedDatasets}
+            onChange={onSelectedDatasetsChange}
+            style={{ minWidth: 200, maxWidth: 360, flex: '0 1 auto' }}
+            options={datasets.map((d) => ({ label: d.name, value: d.id }))}
+            optionFilterProp="label"
+            maxTagCount={3}
+            maxTagTextLength={12}
+            maxTagPlaceholder={(omitted) => {
+              const values = omitted.map((v) =>
+                typeof v === 'string' ? v : ((v as { value?: string }).value ?? String(v)),
+              );
+              return (
+                <Tooltip title={values.map((v) => nameOf(datasets, v)).join(' · ')} placement="top">
+                  <span style={{ fontSize: 11 }}>+{values.length}</span>
+                </Tooltip>
+              );
             }}
-          >
-            <Button size="small" type="text" icon={<DatabaseOutlined />}>
-              <span style={{ fontSize: 12, color: 'var(--ph-text-secondary)' }}>{scopeLabel}</span>
-            </Button>
-          </Dropdown>
+            suffixIcon={<DatabaseOutlined style={{ color: 'var(--ph-text-tertiary)' }} />}
+          />
 
           <Dropdown
             trigger={['click']}
