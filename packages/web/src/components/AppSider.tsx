@@ -1,42 +1,44 @@
 /**
- * App sidebar — logo, search trigger, primary nav, user footer.
+ * App sidebar — logo, icon actions, primary nav, user footer.
  *
- * Extracted from AppLayout for independent maintenance.
- * Self-contained: navigation, active-state, collapse state.
- * Footer shows the signed-in account; header pairs logo with a
- * global search trigger (⌘K).
+ * Header pairs the logo with search & settings icon buttons.
+ * Footer shows the signed-in account (hover = row background) and a
+ * GitHub link (hover = accent color, no background) as separate
+ * interactive zones.
  */
 
 import { useState } from 'react';
-import { Menu, Tooltip, Avatar, Dropdown } from 'antd';
+import { Menu, Tooltip, Dropdown } from 'antd';
 import { Layout } from 'antd';
 import {
   DatabaseOutlined,
   FileTextOutlined,
   SearchOutlined,
   GithubOutlined,
-  UserOutlined,
-  LogoutOutlined,
   SettingOutlined,
+  LogoutOutlined,
 } from '@ant-design/icons';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import PixelSprout from './PixelSprout';
+import UserAvatar from './UserAvatar';
 import { api } from '../api/client.js';
+import { useI18n } from '../i18n/index.js';
+import { formatCombo, useHotkeys } from '../hotkeys/index.js';
 
 const { Sider } = Layout;
 
-const menuItems = [
-  { key: '/', icon: <DatabaseOutlined />, label: 'Datasets' },
-  { key: '/documents', icon: <FileTextOutlined />, label: 'Documents' },
-  { key: '/retrieval', icon: <SearchOutlined />, label: 'Retrieval' },
-];
-
-const isMac = typeof navigator !== 'undefined' && /Mac|iPod|iPhone|iPad/.test(navigator.platform);
-
-export default function AppSider({ onOpenSearch }: { onOpenSearch: () => void }) {
+export default function AppSider({
+  onOpenSearch,
+  onOpenSettings,
+}: {
+  onOpenSearch: () => void;
+  onOpenSettings: () => void;
+}) {
   const navigate = useNavigate();
   const location = useLocation();
+  const { t } = useI18n();
+  const { hotkeys } = useHotkeys();
   const [collapsed, setCollapsed] = useState(false);
 
   const { data: user } = useQuery({
@@ -46,7 +48,7 @@ export default function AppSider({ onOpenSearch }: { onOpenSearch: () => void })
   });
 
   const activeKey =
-    menuItems.find(
+    menuItems(t).find(
       (item) =>
         location.pathname === item.key ||
         (item.key !== '/' && location.pathname.startsWith(item.key)),
@@ -65,7 +67,7 @@ export default function AppSider({ onOpenSearch }: { onOpenSearch: () => void })
         borderRight: '1px solid var(--ph-border-subtle)',
       }}
     >
-      {/* Logo + global search */}
+      {/* Logo + icon actions */}
       <div
         style={{
           height: 48,
@@ -90,75 +92,43 @@ export default function AppSider({ onOpenSearch }: { onOpenSearch: () => void })
             >
               Phloem
             </span>
-            {/* Search pill */}
-            <button
-              type="button"
-              onClick={onOpenSearch}
-              title="Search (⌘K)"
-              aria-label="Open global search"
-              style={{
-                marginLeft: 'auto',
-                display: 'flex',
-                alignItems: 'center',
-                gap: 6,
-                height: 26,
-                padding: '0 8px',
-                background: 'var(--ph-bg-surface)',
-                border: '1px solid var(--ph-border-subtle)',
-                borderRadius: 13,
-                cursor: 'pointer',
-                color: 'var(--ph-text-tertiary)',
-                fontFamily: 'inherit',
-                transition: 'all var(--ph-transition-fast)',
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.borderColor = 'var(--ph-border-strong)';
-                e.currentTarget.style.color = 'var(--ph-text-secondary)';
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.borderColor = 'var(--ph-border-subtle)';
-                e.currentTarget.style.color = 'var(--ph-text-tertiary)';
-              }}
-            >
-              <SearchOutlined style={{ fontSize: 11 }} />
-              <span
-                style={{
-                  fontSize: 11,
-                  fontFamily: 'var(--ph-font-mono)',
-                  lineHeight: 1,
-                }}
-              >
-                {isMac ? '⌘K' : 'Ctrl K'}
-              </span>
-            </button>
+            <div style={{ marginLeft: 'auto', display: 'flex', gap: 2 }}>
+              <IconButton
+                icon={<SearchOutlined />}
+                title={`${t('sidebar.search')} (${formatCombo(hotkeys.openSearch)})`}
+                onClick={onOpenSearch}
+              />
+              <IconButton
+                icon={<SettingOutlined />}
+                title={t('common.settings')}
+                onClick={onOpenSettings}
+              />
+            </div>
           </>
         )}
       </div>
 
-      {/* Collapsed-state search icon replaces the pill */}
+      {/* Collapsed-state actions under the logo */}
       {collapsed && (
-        <div style={{ display: 'flex', justifyContent: 'center', padding: '10px 0' }}>
-          <Tooltip title="Search (⌘K)" placement="right">
-            <button
-              type="button"
-              onClick={onOpenSearch}
-              aria-label="Open global search"
-              style={{
-                width: 32,
-                height: 32,
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                background: 'var(--ph-bg-surface)',
-                border: '1px solid var(--ph-border-subtle)',
-                borderRadius: 16,
-                cursor: 'pointer',
-                color: 'var(--ph-text-tertiary)',
-              }}
-            >
-              <SearchOutlined style={{ fontSize: 14 }} />
-            </button>
-          </Tooltip>
+        <div
+          style={{
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            gap: 4,
+            padding: '10px 0',
+          }}
+        >
+          <IconButton
+            icon={<SearchOutlined />}
+            title={t('sidebar.search')}
+            onClick={onOpenSearch}
+          />
+          <IconButton
+            icon={<SettingOutlined />}
+            title={t('common.settings')}
+            onClick={onOpenSettings}
+          />
         </div>
       )}
 
@@ -166,7 +136,7 @@ export default function AppSider({ onOpenSearch }: { onOpenSearch: () => void })
         mode="inline"
         selectedKeys={[activeKey]}
         onClick={({ key }) => navigate(key)}
-        items={menuItems}
+        items={menuItems(t)}
         style={{
           background: 'transparent',
           border: 'none',
@@ -175,113 +145,151 @@ export default function AppSider({ onOpenSearch }: { onOpenSearch: () => void })
         theme="dark"
       />
 
-      {/* Footer: signed-in account */}
+      {/* Footer: account row + GitHub as separate zones */}
       <div
         style={{
           position: 'absolute',
           bottom: 0,
           left: 0,
           right: 0,
-          padding: collapsed ? '10px 0' : '10px 12px',
+          padding: collapsed ? '10px 0' : '8px 12px',
           borderTop: '1px solid var(--ph-border-subtle)',
           display: 'flex',
           alignItems: 'center',
           justifyContent: collapsed ? 'center' : 'flex-start',
+          gap: 4,
         }}
       >
         {collapsed ? (
-          <Tooltip title={user ? `${user.name} · ${user.email}` : 'Account'} placement="right">
-            <Avatar
-              size={26}
-              icon={<UserOutlined />}
-              style={{ background: 'var(--ph-accent-deep)' }}
-            />
-          </Tooltip>
-        ) : (
           <Dropdown
             trigger={['click']}
-            placement="topLeft"
+            placement="topRight"
             menu={{
-              items: [
-                {
-                  key: 'profile',
-                  icon: <UserOutlined />,
-                  label: (
-                    <span>
-                      <div style={{ fontSize: 13, color: 'var(--ph-text-primary)' }}>
-                        {user?.name}
-                      </div>
-                      <div style={{ fontSize: 11, color: 'var(--ph-text-tertiary)' }}>
-                        {user?.email}
-                      </div>
-                    </span>
-                  ),
-                  disabled: true,
-                },
-                { type: 'divider' },
-                { key: 'settings', icon: <SettingOutlined />, label: 'Settings' },
-                { key: 'logout', icon: <LogoutOutlined />, label: 'Sign out' },
-              ],
+              items: dropdownItems(t, user?.name, user?.email),
             }}
           >
-            <div
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: 10,
-                padding: '4px 6px 4px 4px',
-                borderRadius: 'var(--ph-radius-small)',
-                cursor: 'pointer',
-                width: '100%',
-                transition: 'background var(--ph-transition-fast)',
-              }}
-              onMouseEnter={(e) => (e.currentTarget.style.background = 'var(--ph-bg-hover)')}
-              onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}
-            >
-              <Avatar
-                size={26}
-                icon={<UserOutlined />}
-                style={{ background: 'var(--ph-accent-deep)' }}
-              />
-              <div style={{ minWidth: 0, flex: 1 }}>
-                <div
-                  style={{
-                    fontSize: 12,
-                    fontWeight: 500,
-                    color: 'var(--ph-text-primary)',
-                    whiteSpace: 'nowrap',
-                    overflow: 'hidden',
-                    textOverflow: 'ellipsis',
-                  }}
-                >
-                  {user?.name ?? '—'}
-                </div>
-                <div
-                  style={{
-                    fontSize: 11,
-                    color: 'var(--ph-text-tertiary)',
-                    whiteSpace: 'nowrap',
-                    overflow: 'hidden',
-                    textOverflow: 'ellipsis',
-                  }}
-                >
-                  {user?.email ?? ''}
-                </div>
-              </div>
-              <a
-                href="https://github.com/phytul/phloem"
-                target="_blank"
-                rel="noopener noreferrer"
-                onClick={(e) => e.stopPropagation()}
-                style={{ color: 'var(--ph-text-tertiary)', fontSize: 15, lineHeight: 1 }}
-                aria-label="GitHub repository"
-              >
-                <GithubOutlined />
-              </a>
+            <div style={{ cursor: 'pointer', padding: 4, borderRadius: 6 }}>
+              <UserAvatar user={user} size={26} />
             </div>
           </Dropdown>
+        ) : (
+          <>
+            <Dropdown
+              trigger={['click']}
+              placement="topLeft"
+              menu={{ items: dropdownItems(t, user?.name, user?.email) }}
+            >
+              {/* Account row — hover paints the row background */}
+              <div
+                className="ph-user-row"
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 10,
+                  padding: '4px 6px 4px 4px',
+                  borderRadius: 'var(--ph-radius-small)',
+                  cursor: 'pointer',
+                  minWidth: 0,
+                  flex: 1,
+                }}
+              >
+                <UserAvatar user={user} size={26} />
+                <div style={{ minWidth: 0, flex: 1 }}>
+                  <div className="ph-user-name">{user?.name ?? '—'}</div>
+                  <div className="ph-user-email">{user?.email ?? ''}</div>
+                </div>
+              </div>
+            </Dropdown>
+            {/* GitHub — hover tints the icon only */}
+            <a
+              href="https://github.com/phytul/phloem"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="ph-github-link"
+              aria-label={t('sidebar.github')}
+            >
+              <GithubOutlined />
+            </a>
+          </>
         )}
       </div>
     </Sider>
   );
+}
+
+/** Small square icon button used in the sidebar header. */
+function IconButton({
+  icon,
+  title,
+  onClick,
+}: {
+  icon: React.ReactNode;
+  title: string;
+  onClick: () => void;
+}) {
+  return (
+    <Tooltip title={title} placement="right">
+      <button
+        type="button"
+        onClick={onClick}
+        aria-label={title}
+        style={{
+          width: 28,
+          height: 28,
+          display: 'inline-flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          background: 'transparent',
+          border: 'none',
+          borderRadius: 6,
+          cursor: 'pointer',
+          color: 'var(--ph-text-tertiary)',
+          fontSize: 15,
+          transition: 'all var(--ph-transition-fast)',
+        }}
+        onMouseEnter={(e) => {
+          e.currentTarget.style.background = 'var(--ph-bg-hover)';
+          e.currentTarget.style.color = 'var(--ph-text-primary)';
+        }}
+        onMouseLeave={(e) => {
+          e.currentTarget.style.background = 'transparent';
+          e.currentTarget.style.color = 'var(--ph-text-tertiary)';
+        }}
+      >
+        {icon}
+      </button>
+    </Tooltip>
+  );
+}
+
+function menuItems(t: (key: never) => string) {
+  return [
+    { key: '/', icon: <DatabaseOutlined />, label: t('nav.datasets' as never) },
+    { key: '/documents', icon: <FileTextOutlined />, label: t('nav.documents' as never) },
+    { key: '/retrieval', icon: <SearchOutlined />, label: t('nav.retrieval' as never) },
+  ];
+}
+
+function dropdownItems(t: ReturnType<typeof useI18n>['t'], name?: string, email?: string) {
+  return [
+    {
+      key: 'profile',
+      label: (
+        <div style={{ padding: '2px 0' }}>
+          <div style={{ fontSize: 13, color: 'var(--ph-text-primary)', fontWeight: 500 }}>
+            {name ?? '—'}
+          </div>
+          <div style={{ fontSize: 11, color: 'var(--ph-text-tertiary)' }}>{email ?? ''}</div>
+        </div>
+      ),
+      disabled: true,
+    },
+    { type: 'divider' as const },
+    {
+      key: 'settings',
+      icon: <SettingOutlined />,
+      label: t('user.settings'),
+    },
+    { key: 'logout', icon: <LogoutOutlined />, label: t('user.signOut') },
+  ];
 }

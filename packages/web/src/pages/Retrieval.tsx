@@ -11,11 +11,13 @@ import { SearchOutlined } from '@ant-design/icons';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { useSearchParams } from 'react-router-dom';
 import { api } from '../api/client.js';
+import { useI18n } from '../i18n/index.js';
 import type { RetrievalChunk } from '@phloem/shared';
 
 const { Text, Paragraph } = Typography;
 
 export default function RetrievalPage() {
+  const { t } = useI18n();
   const [searchParams] = useSearchParams();
   const initialQuestion = searchParams.get('q') ?? '';
 
@@ -67,10 +69,10 @@ export default function RetrievalPage() {
             marginBottom: 8,
           }}
         >
-          Retrieval
+          {t('retrieval.title')}
         </h1>
         <Text style={{ color: 'var(--ph-text-secondary)', fontSize: 13 }}>
-          Search across your knowledge bases with hybrid retrieval
+          {t('retrieval.subtitle')}
         </Text>
       </div>
 
@@ -80,7 +82,7 @@ export default function RetrievalPage() {
           <Select
             mode="multiple"
             allowClear
-            placeholder="All datasets (default)"
+            placeholder={t('retrieval.datasetFilter')}
             value={selectedDatasets}
             onChange={setSelectedDatasets}
             style={{ minWidth: 320, maxWidth: 480 }}
@@ -93,13 +95,13 @@ export default function RetrievalPage() {
       {/* Search input */}
       <Input.Search
         size="large"
-        placeholder="Ask a question..."
+        placeholder={t('retrieval.placeholder')}
         value={question}
         onChange={(e) => setQuestion(e.target.value)}
         onPressEnter={handleSearch}
         enterButton={
           <Button type="primary" icon={<SearchOutlined />} loading={retrieveMutation.isPending}>
-            Search
+            {t('retrieval.search')}
           </Button>
         }
         style={{ marginBottom: 32 }}
@@ -108,7 +110,7 @@ export default function RetrievalPage() {
       {/* Results */}
       {retrieveMutation.isPending ? (
         <div style={{ textAlign: 'center', padding: 60 }}>
-          <Spin tip="Retrieving..." />
+          <Spin tip={t('retrieval.retrieving')} />
         </div>
       ) : results.length > 0 ? (
         <div>
@@ -127,7 +129,7 @@ export default function RetrievalPage() {
                 fontFamily: 'var(--ph-font-mono)',
               }}
             >
-              {results.length} results
+              {t('retrieval.results', { count: results.length })}
             </Text>
           </div>
 
@@ -204,18 +206,14 @@ export default function RetrievalPage() {
         <Empty
           image={Empty.PRESENTED_IMAGE_SIMPLE}
           description={
-            <span style={{ color: 'var(--ph-text-tertiary)' }}>
-              Enter a question to search your knowledge bases
-            </span>
+            <span style={{ color: 'var(--ph-text-tertiary)' }}>{t('retrieval.emptyIdle')}</span>
           }
         />
       ) : (
         <Empty
           image={Empty.PRESENTED_IMAGE_SIMPLE}
           description={
-            <span style={{ color: 'var(--ph-text-tertiary)' }}>
-              No results found. Try rephrasing your question.
-            </span>
+            <span style={{ color: 'var(--ph-text-tertiary)' }}>{t('retrieval.emptyNone')}</span>
           }
         />
       )}

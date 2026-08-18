@@ -63,6 +63,10 @@ export const antdTheme: ThemeConfig = {
       itemBorderRadius: 6,
       itemMarginInline: 8,
     },
+    Dropdown: {
+      controlItemBgHover: '#262626',
+      controlItemBgActive: '#262626',
+    },
     Table: {
       headerBg: '#161616',
       headerColor: '#a0a0a0',

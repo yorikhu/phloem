@@ -80,6 +80,50 @@ body {
   font-family: var(--ph-font-mono);
 }
 
+/* ── Sidebar user footer ── */
+.ph-user-row {
+  transition: background var(--ph-transition-fast);
+}
+
+.ph-user-row:hover {
+  background: var(--ph-bg-hover);
+}
+
+.ph-user-name {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--ph-text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.ph-user-email {
+  font-size: 11px;
+  color: var(--ph-text-tertiary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* GitHub link — icon-only hover tint, no background */
+.ph-github-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  flex-shrink: 0;
+  color: var(--ph-text-tertiary);
+  font-size: 15px;
+  border-radius: 6px;
+  transition: color var(--ph-transition-fast);
+}
+
+.ph-github-link:hover {
+  color: var(--ph-accent);
+}
+
 /* ── Command palette ── */
 @keyframes ph-palette-in {
   from {

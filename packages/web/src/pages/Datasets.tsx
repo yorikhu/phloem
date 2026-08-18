@@ -21,10 +21,12 @@ import { PlusOutlined, DatabaseOutlined, DeleteOutlined, SearchOutlined } from '
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
 import { api } from '../api/client.js';
+import { useI18n } from '../i18n/index.js';
 
 const { Text } = Typography;
 
 export default function DatasetsPage() {
+  const { t } = useI18n();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [search, setSearch] = useState('');
@@ -73,20 +75,20 @@ export default function DatasetsPage() {
               marginBottom: 4,
             }}
           >
-            Datasets
+            {t('datasets.title')}
           </h1>
           <Text style={{ color: 'var(--ph-text-secondary)', fontSize: 13 }}>
-            {datasets.length} {datasets.length === 1 ? 'dataset' : 'datasets'}
+            {t('datasets.count', { count: datasets.length })}
           </Text>
         </div>
         <Button type="primary" icon={<PlusOutlined />} onClick={() => setModalOpen(true)}>
-          New Dataset
+          {t('datasets.new')}
         </Button>
       </div>
 
       {/* Search */}
       <Input
-        placeholder="Search datasets..."
+        placeholder={t('datasets.searchPlaceholder')}
         prefix={<SearchOutlined style={{ color: 'var(--ph-text-tertiary)' }} />}
         value={search}
         onChange={(e) => setSearch(e.target.value)}
@@ -108,13 +110,13 @@ export default function DatasetsPage() {
           image={Empty.PRESENTED_IMAGE_SIMPLE}
           description={
             <span style={{ color: 'var(--ph-text-tertiary)' }}>
-              {search ? 'No matching datasets' : 'No datasets yet'}
+              {search ? t('datasets.emptyFiltered') : t('datasets.empty')}
             </span>
           }
         >
           {!search && (
             <Button type="primary" icon={<PlusOutlined />} onClick={() => setModalOpen(true)}>
-              Create your first dataset
+              {t('datasets.createFirst')}
             </Button>
           )}
         </Empty>
@@ -150,13 +152,13 @@ export default function DatasetsPage() {
               >
                 <DatabaseOutlined style={{ fontSize: 20, color: 'var(--ph-accent)' }} />
                 <Popconfirm
-                  title="Delete this dataset?"
-                  description="This action cannot be undone."
+                  title={t('datasets.deleteTitle')}
+                  description={t('datasets.deleteDesc')}
                   onConfirm={() => deleteMutation.mutate(ds.id)}
-                  okText="Delete"
+                  okText={t('common.delete')}
                   okButtonProps={{ danger: true }}
                 >
-                  <Tooltip title="Delete">
+                  <Tooltip title={t('datasets.deleteTooltip')}>
                     <DeleteOutlined
                       onClick={(e) => e.stopPropagation()}
                       style={{
@@ -206,8 +208,8 @@ export default function DatasetsPage() {
                   color: 'var(--ph-text-tertiary)',
                 }}
               >
-                <span>{ds.documentCount} docs</span>
-                <span>{ds.chunkCount} chunks</span>
+                <span>{t('datasets.metaDocs', { count: ds.documentCount })}</span>
+                <span>{t('datasets.metaChunks', { count: ds.chunkCount })}</span>
               </div>
             </Card>
           ))}
@@ -216,7 +218,7 @@ export default function DatasetsPage() {
 
       {/* Create modal */}
       <Modal
-        title="New Dataset"
+        title={t('datasets.modalTitle')}
         open={modalOpen}
         onCancel={() => setModalOpen(false)}
         footer={null}
@@ -224,18 +226,22 @@ export default function DatasetsPage() {
         <Form form={form} layout="vertical" onFinish={(values) => createMutation.mutate(values)}>
           <Form.Item
             name="name"
-            label="Name"
-            rules={[{ required: true, message: 'Please enter a name' }]}
+            label={t('datasets.fieldName')}
+            rules={[{ required: true, message: t('datasets.fieldNameRequired') }]}
           >
-            <Input placeholder="e.g. Product Documentation" autoFocus />
+            <Input placeholder={t('datasets.fieldNamePlaceholder')} autoFocus />
           </Form.Item>
-          <Form.Item name="description" label="Description">
-            <Input.TextArea placeholder="Optional description..." rows={3} maxLength={512} />
+          <Form.Item name="description" label={t('datasets.fieldDesc')}>
+            <Input.TextArea
+              placeholder={t('datasets.fieldDescPlaceholder')}
+              rows={3}
+              maxLength={512}
+            />
           </Form.Item>
           <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
-            <Button onClick={() => setModalOpen(false)}>Cancel</Button>
+            <Button onClick={() => setModalOpen(false)}>{t('common.cancel')}</Button>
             <Button type="primary" htmlType="submit" loading={createMutation.isPending}>
-              Create
+              {t('common.create')}
             </Button>
           </div>
         </Form>

@@ -1,35 +1,31 @@
 /**
- * App layout — sidebar + content area + global search layer.
+ * App layout — sidebar + content area + global layers.
  *
- * Layout owns the CommandPalette state: sidebar triggers open,
- * ⌘K / Ctrl+K toggles from anywhere.
+ * Owns the command palette and settings modal state; the ⌘K binding
+ * goes through the hotkeys module so users can re-record it.
  */
 
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { Layout } from 'antd';
 import AppSider from './AppSider';
 import CommandPalette from './CommandPalette';
+import SettingsModal from './SettingsModal';
+import { useHotkey } from '../hotkeys/index.js';
 
 const { Content } = Layout;
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   const [searchOpen, setSearchOpen] = useState(false);
+  const [settingsOpen, setSettingsOpen] = useState(false);
 
-  // Global ⌘K / Ctrl+K shortcut
-  useEffect(() => {
-    const onKey = (e: KeyboardEvent) => {
-      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
-        e.preventDefault();
-        setSearchOpen((v) => !v);
-      }
-    };
-    window.addEventListener('keydown', onKey);
-    return () => window.removeEventListener('keydown', onKey);
-  }, []);
+  useHotkey('openSearch', () => setSearchOpen((v) => !v));
 
   return (
     <Layout style={{ minHeight: '100vh', background: 'var(--ph-bg-base)' }}>
-      <AppSider onOpenSearch={() => setSearchOpen(true)} />
+      <AppSider
+        onOpenSearch={() => setSearchOpen(true)}
+        onOpenSettings={() => setSettingsOpen(true)}
+      />
 
       <Layout style={{ background: 'var(--ph-bg-base)' }}>
         <Content
@@ -45,6 +41,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
       </Layout>
 
       <CommandPalette open={searchOpen} onClose={() => setSearchOpen(false)} />
+      <SettingsModal open={settingsOpen} onClose={() => setSettingsOpen(false)} />
     </Layout>
   );
 }

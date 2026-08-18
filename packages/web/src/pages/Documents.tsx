@@ -22,6 +22,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useSearchParams } from 'react-router-dom';
 import type { Document, DocumentStatus } from '@phloem/shared';
 import { api } from '../api/client.js';
+import { useI18n } from '../i18n/index.js';
 
 const { Text } = Typography;
 const { Dragger } = Upload;
@@ -41,6 +42,7 @@ function formatSize(bytes?: number): string {
 }
 
 export default function DocumentsPage() {
+  const { t } = useI18n();
   const [searchParams, setSearchParams] = useSearchParams();
   const queryClient = useQueryClient();
   const datasetId = searchParams.get('datasetId') ?? '';
@@ -64,9 +66,9 @@ export default function DocumentsPage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['documents', datasetId] });
       queryClient.invalidateQueries({ queryKey: ['datasets'] });
-      message.success('File uploaded');
+      message.success(t('documents.uploaded'));
     },
-    onError: () => message.error('Upload failed'),
+    onError: () => message.error(t('documents.uploadFailed')),
   });
 
   const deleteMutation = useMutation({
@@ -74,7 +76,7 @@ export default function DocumentsPage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['documents', datasetId] });
       queryClient.invalidateQueries({ queryKey: ['datasets'] });
-      message.success('Document deleted');
+      message.success(t('documents.deleted'));
     },
   });
 
@@ -83,14 +85,14 @@ export default function DocumentsPage() {
   const columns = useMemo(
     () => [
       {
-        title: 'Name',
+        title: t('documents.colName'),
         dataIndex: 'name',
         key: 'name',
         ellipsis: true,
         render: (name: string) => <span style={{ fontSize: 13 }}>{name}</span>,
       },
       {
-        title: 'Status',
+        title: t('documents.colStatus'),
         dataIndex: 'status',
         key: 'status',
         width: 110,
@@ -109,7 +111,7 @@ export default function DocumentsPage() {
         ),
       },
       {
-        title: 'Size',
+        title: t('documents.colSize'),
         dataIndex: 'size',
         key: 'size',
         width: 90,
@@ -126,7 +128,7 @@ export default function DocumentsPage() {
         ),
       },
       {
-        title: 'Chunks',
+        title: t('documents.colChunks'),
         dataIndex: 'chunkCount',
         key: 'chunkCount',
         width: 80,
@@ -148,12 +150,12 @@ export default function DocumentsPage() {
         width: 48,
         render: (_: unknown, record: Document) => (
           <Popconfirm
-            title="Delete this document?"
+            title={t('datasets.deleteTitle')}
             onConfirm={() => deleteMutation.mutate(record.id)}
-            okText="Delete"
+            okText={t('common.delete')}
             okButtonProps={{ danger: true }}
           >
-            <Tooltip title="Delete">
+            <Tooltip title={t('datasets.deleteTooltip')}>
               <DeleteOutlined
                 style={{
                   color: 'var(--ph-text-tertiary)',
@@ -180,7 +182,7 @@ export default function DocumentsPage() {
             marginBottom: 32,
           }}
         >
-          Documents
+          {t('documents.title')}
         </h1>
         <div style={{ marginBottom: 24 }}>
           {datasets.map((ds) => (
@@ -194,7 +196,7 @@ export default function DocumentsPage() {
           ))}
         </div>
         <Text style={{ color: 'var(--ph-text-tertiary)', fontSize: 13 }}>
-          Select a dataset to view its documents.
+          {t('documents.selectDataset')}
         </Text>
       </div>
     );
@@ -225,13 +227,13 @@ export default function DocumentsPage() {
             {currentDataset?.name ?? 'Documents'}
           </h1>
           <Text style={{ color: 'var(--ph-text-secondary)', fontSize: 13 }}>
-            {documents.length} {documents.length === 1 ? 'document' : 'documents'}
+            {t('documents.count', { count: documents.length })}
           </Text>
         </div>
         <Segmented
           options={[
-            { label: 'Table', value: 'table' },
-            { label: 'Upload', value: 'upload' },
+            { label: t('documents.viewTable'), value: 'table' },
+            { label: t('documents.viewUpload'), value: 'upload' },
           ]}
           value={view}
           onChange={(v) => setView(v as 'table' | 'upload')}
@@ -277,10 +279,10 @@ export default function DocumentsPage() {
               marginBottom: 4,
             }}
           >
-            Drop files here or click to upload
+            {t('documents.dropTitle')}
           </p>
           <p style={{ fontSize: 12, color: 'var(--ph-text-tertiary)' }}>
-            PDF, Word, Excel, Markdown, TXT
+            {t('documents.dropHint')}
           </p>
         </Dragger>
       ) : (
@@ -297,7 +299,7 @@ export default function DocumentsPage() {
           }}
           locale={{
             emptyText: (
-              <span style={{ color: 'var(--ph-text-tertiary)' }}>No documents in this dataset</span>
+              <span style={{ color: 'var(--ph-text-tertiary)' }}>{t('documents.empty')}</span>
             ),
           }}
         />

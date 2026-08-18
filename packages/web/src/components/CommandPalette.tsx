@@ -1,7 +1,7 @@
 /**
  * CommandPalette — global floating search, centered on screen.
  *
- * Opens via Cmd/Ctrl+K or the search pill next to the sidebar logo.
+ * Opens via the configurable openSearch hotkey or the sidebar button.
  * Searches: navigation pages, datasets, documents. Any unmatched
  * query falls back to "Ask ..." which routes to Retrieval.
  *
@@ -19,25 +19,41 @@ import {
   EnterOutlined,
 } from '@ant-design/icons';
 import { api } from '../api/client.js';
+import { useI18n } from '../i18n/index.js';
+import { formatCombo, useHotkeys } from '../hotkeys/index.js';
 import type { Dataset, Document } from '@phloem/shared';
 
 type PaletteItem = {
   key: string;
   icon: React.ReactNode;
   label: string;
-  hint: string | undefined;
+  hint?: string | undefined;
   group: 'Navigate' | 'Datasets' | 'Documents' | 'Ask';
   action: () => void;
 };
 
-const isMac = typeof navigator !== 'undefined' && /Mac|iPod|iPhone|iPad/.test(navigator.platform);
+type PaletteGroup = PaletteItem['group'];
 
 export default function CommandPalette({ open, onClose }: { open: boolean; onClose: () => void }) {
   const navigate = useNavigate();
+  const { t } = useI18n();
+  const { hotkeys } = useHotkeys();
   const [query, setQuery] = useState('');
   const [activeIndex, setActiveIndex] = useState(0);
   const inputRef = useRef<HTMLInputElement>(null);
   const listRef = useRef<HTMLDivElement>(null);
+
+  // Group labels are translated at render time
+  const groupLabel = useCallback(
+    (g: PaletteGroup): string =>
+      ({
+        Navigate: t('palette.groupNavigate'),
+        Datasets: t('palette.groupDatasets'),
+        Documents: t('palette.groupDocuments'),
+        Ask: t('palette.groupAsk'),
+      })[g],
+    [t],
+  );
 
   // ── Data (from react-query cache, already fetched by pages) ──
   const { data: datasetsData } = useQuery({
@@ -81,24 +97,24 @@ export default function CommandPalette({ open, onClose }: { open: boolean; onClo
         {
           key: 'nav-datasets',
           icon: <DatabaseOutlined />,
-          label: 'Datasets',
-          hint: 'Page',
+          label: t('nav.datasets'),
+          hint: t('common.page'),
           group: 'Navigate',
           action: () => navigate('/'),
         },
         {
           key: 'nav-documents',
           icon: <FileTextOutlined />,
-          label: 'Documents',
-          hint: 'Page',
+          label: t('nav.documents'),
+          hint: t('common.page'),
           group: 'Navigate',
           action: () => navigate('/documents'),
         },
         {
           key: 'nav-retrieval',
           icon: <SearchOutlined />,
-          label: 'Retrieval',
-          hint: 'Page',
+          label: t('nav.retrieval'),
+          hint: t('common.page'),
           group: 'Navigate',
           action: () => navigate('/retrieval'),
         },
@@ -112,7 +128,7 @@ export default function CommandPalette({ open, onClose }: { open: boolean; onClo
         key: `ds-${d.id}`,
         icon: <DatabaseOutlined />,
         label: d.name,
-        hint: `${d.documentCount} docs`,
+        hint: t('palette.hintDocs', { count: d.documentCount }),
         group: 'Datasets' as const,
         action: () => navigate(`/documents?datasetId=${d.id}`),
       }));
@@ -138,8 +154,8 @@ export default function CommandPalette({ open, onClose }: { open: boolean; onClo
             {
               key: 'ask',
               icon: <ArrowRightOutlined />,
-              label: `Ask "${query.trim()}"`,
-              hint: 'Retrieval',
+              label: t('palette.ask', { query: query.trim() }),
+              hint: t('nav.retrieval'),
               group: 'Ask',
               action: () => navigate(`/retrieval?q=${encodeURIComponent(query.trim())}`),
             },
@@ -147,7 +163,7 @@ export default function CommandPalette({ open, onClose }: { open: boolean; onClo
         : [];
 
     return [...navItems, ...datasetItems, ...documentItems, ...askItem];
-  }, [query, datasets, documents, navigate]);
+  }, [query, datasets, documents, navigate, t]);
 
   // ── Clamp active index when list shrinks ──
   useEffect(() => {
@@ -193,7 +209,7 @@ export default function CommandPalette({ open, onClose }: { open: boolean; onClo
 
   // ── Group items for rendering ──
   const groups = useMemo(() => {
-    const map = new Map<string, { item: PaletteItem; index: number }[]>();
+    const map = new Map<PaletteGroup, { item: PaletteItem; index: number }[]>();
     items.forEach((item, index) => {
       const list = map.get(item.group) ?? [];
       list.push({ item, index });
@@ -213,7 +229,7 @@ export default function CommandPalette({ open, onClose }: { open: boolean; onClo
         display: 'flex',
         alignItems: 'flex-start',
         justifyContent: 'center',
-        // Codex-style: panel sits slightly above vertical center
+        // Panel sits slightly above vertical center
         paddingTop: '18vh',
         background: 'rgba(0, 0, 0, 0.6)',
         backdropFilter: 'blur(2px)',
@@ -225,7 +241,7 @@ export default function CommandPalette({ open, onClose }: { open: boolean; onClo
       <div
         role="dialog"
         aria-modal="true"
-        aria-label="Global search"
+        aria-label={t('sidebar.search')}
         onKeyDown={handleKeyDown}
         style={{
           width: 'min(640px, calc(100vw - 48px))',
@@ -258,7 +274,7 @@ export default function CommandPalette({ open, onClose }: { open: boolean; onClo
               setQuery(e.target.value);
               setActiveIndex(0);
             }}
-            placeholder="Search datasets, documents, or ask anything..."
+            placeholder={t('palette.placeholder')}
             spellCheck={false}
             autoComplete="off"
             style={{
@@ -297,7 +313,7 @@ export default function CommandPalette({ open, onClose }: { open: boolean; onClo
                 fontSize: 13,
               }}
             >
-              No matches for “{query.trim()}”
+              {t('palette.noMatches', { query: query.trim() })}
             </div>
           ) : (
             groups.map(([group, list]) => (
@@ -312,7 +328,7 @@ export default function CommandPalette({ open, onClose }: { open: boolean; onClo
                     letterSpacing: '0.08em',
                   }}
                 >
-                  {group}
+                  {groupLabel(group)}
                 </div>
                 {list.map(({ item, index }) => {
                   const active = index === activeIndex;
@@ -396,10 +412,10 @@ export default function CommandPalette({ open, onClose }: { open: boolean; onClo
             fontFamily: 'var(--ph-font-mono)',
           }}
         >
-          <span>↑↓ navigate</span>
-          <span>↵ open</span>
-          <span>esc close</span>
-          <span style={{ marginLeft: 'auto' }}>{isMac ? '⌘' : 'Ctrl'}+K</span>
+          <span>{t('palette.footerNavigate')}</span>
+          <span>{t('palette.footerOpen')}</span>
+          <span>{t('palette.footerClose')}</span>
+          <span style={{ marginLeft: 'auto' }}>{formatCombo(hotkeys.openSearch)}</span>
         </div>
       </div>
     </div>
