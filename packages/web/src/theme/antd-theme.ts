@@ -28,6 +28,8 @@ export function buildAntdTheme(mode: ThemeMode): ThemeConfig {
       colorBorderSecondary: p.borderSubtle,
       colorBgTextHover: p.bgHover,
       colorBgTextActive: p.borderDefault,
+      controlItemBgHover: p.bgHover,
+      controlItemBgActive: p.accentDim,
 
       // Status
       colorSuccess: p.success,
@@ -74,6 +76,13 @@ export function buildAntdTheme(mode: ThemeMode): ThemeConfig {
       Dropdown: {
         controlItemBgHover: p.bgHover,
         controlItemBgActive: p.bgHover,
+      },
+      Select: {
+        // Multiple-mode selected tags — must be readable on both palettes
+        multipleItemBg: p.accentDim,
+        optionSelectedBg: p.accentDim,
+        optionSelectedColor: p.textPrimary,
+        optionSelectedFontWeight: 400,
       },
       Table: {
         headerBg: p.bgSurface,
