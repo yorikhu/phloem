@@ -1,0 +1,387 @@
+openapi: 3.1.0
+info:
+  title: Phloem API
+  description: |
+    Phloem is an open-source, self-hosted knowledge base platform built on RAGFlow.
+    This is the single source of truth for all API contracts — frontend, gateway, MCP server,
+    and tests all consume this specification.
+  version: 0.1.0
+  license:
+    name: Apache-2.0
+    url: http://www.apache.org/licenses/LICENSE-2.0
+  contact:
+    name: Phytul
+    url: https://github.com/phytul/phloem
+servers:
+  - url: http://localhost:3000/api/v1
+    description: Local development
+  - url: /api/v1
+    description: Same-origin (production)
+tags:
+  - name: Datasets
+    description: Knowledge base dataset management
+  - name: Documents
+    description: Document upload and management
+  - name: Retrieval
+    description: Knowledge retrieval and search
+  - name: Health
+    description: Health check endpoints
+paths:
+  /health:
+    get:
+      tags: [Health]
+      summary: Health check
+      description: Returns the service health status and adapter type
+      operationId: getHealth
+      responses:
+        '200':
+          description: Service is healthy
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthStatus'
+  /datasets:
+    get:
+      tags: [Datasets]
+      summary: List datasets
+      operationId: listDatasets
+      parameters:
+        - $ref: '#/components/parameters/PageQuery'
+        - $ref: '#/components/parameters/PageSizeQuery'
+      responses:
+        '200':
+          description: List of datasets
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [data, total, page, pageSize]
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Dataset'
+                  total:
+                    type: integer
+                  page:
+                    type: integer
+                  pageSize:
+                    type: integer
+    post:
+      tags: [Datasets]
+      summary: Create a dataset
+      operationId: createDataset
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DatasetCreate'
+      responses:
+        '201':
+          description: Dataset created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Dataset'
+  /datasets/{datasetId}:
+    get:
+      tags: [Datasets]
+      summary: Get dataset by ID
+      operationId: getDataset
+      parameters:
+        - $ref: '#/components/parameters/DatasetIdPath'
+      responses:
+        '200':
+          description: Dataset details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Dataset'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    delete:
+      tags: [Datasets]
+      summary: Delete dataset
+      operationId: deleteDataset
+      parameters:
+        - $ref: '#/components/parameters/DatasetIdPath'
+      responses:
+        '204':
+          description: Dataset deleted
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /datasets/{datasetId}/documents:
+    get:
+      tags: [Documents]
+      summary: List documents in a dataset
+      operationId: listDocuments
+      parameters:
+        - $ref: '#/components/parameters/DatasetIdPath'
+        - $ref: '#/components/parameters/PageQuery'
+        - $ref: '#/components/parameters/PageSizeQuery'
+      responses:
+        '200':
+          description: List of documents
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [data, total, page, pageSize]
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Document'
+                  total:
+                    type: integer
+                  page:
+                    type: integer
+                  pageSize:
+                    type: integer
+    post:
+      tags: [Documents]
+      summary: Upload a document to a dataset
+      operationId: uploadDocument
+      parameters:
+        - $ref: '#/components/parameters/DatasetIdPath'
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [file]
+              properties:
+                file:
+                  type: string
+                  format: binary
+      responses:
+        '201':
+          description: Document uploaded
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Document'
+  /datasets/{datasetId}/documents/{documentId}:
+    delete:
+      tags: [Documents]
+      summary: Delete a document
+      operationId: deleteDocument
+      parameters:
+        - $ref: '#/components/parameters/DatasetIdPath'
+        - $ref: '#/components/parameters/DocumentIdPath'
+      responses:
+        '204':
+          description: Document deleted
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /retrieval:
+    post:
+      tags: [Retrieval]
+      summary: Retrieve knowledge
+      description: Search across datasets using hybrid retrieval (vector + keyword)
+      operationId: retrieve
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RetrievalRequest'
+      responses:
+        '200':
+          description: Retrieval results
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RetrievalResponse'
+components:
+  parameters:
+    PageQuery:
+      name: page
+      in: query
+      schema:
+        type: integer
+        minimum: 1
+        default: 1
+    PageSizeQuery:
+      name: pageSize
+      in: query
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 100
+        default: 20
+    DatasetIdPath:
+      name: datasetId
+      in: path
+      required: true
+      schema:
+        type: string
+    DocumentIdPath:
+      name: documentId
+      in: path
+      required: true
+      schema:
+        type: string
+  responses:
+    NotFound:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    BadRequest:
+      description: Invalid request
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    InternalError:
+      description: Internal server error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+  schemas:
+    HealthStatus:
+      type: object
+      required: [status, adapter, version]
+      properties:
+        status:
+          type: string
+          enum: [ok, degraded, error]
+        adapter:
+          type: string
+          enum: [mock, ragflow]
+        version:
+          type: string
+        timestamp:
+          type: string
+          format: date-time
+    Dataset:
+      type: object
+      required: [id, name, createdAt]
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        description:
+          type: string
+        documentCount:
+          type: integer
+        chunkCount:
+          type: integer
+        embeddingModel:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+    DatasetCreate:
+      type: object
+      required: [name]
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 128
+        description:
+          type: string
+          maxLength: 512
+        embeddingModel:
+          type: string
+          default: 'BAAI/bge-large-zh-v1.5'
+    Document:
+      type: object
+      required: [id, datasetId, name, status, createdAt]
+      properties:
+        id:
+          type: string
+        datasetId:
+          type: string
+        name:
+          type: string
+        size:
+          type: integer
+          format: int64
+        status:
+          type: string
+          enum: [pending, parsing, ready, error]
+        chunkCount:
+          type: integer
+        progress:
+          type: number
+          format: float
+          minimum: 0
+          maximum: 1
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+    RetrievalRequest:
+      type: object
+      required: [question, datasetIds]
+      properties:
+        question:
+          type: string
+          minLength: 1
+        datasetIds:
+          type: array
+          items:
+            type: string
+          minItems: 1
+        topK:
+          type: integer
+          minimum: 1
+          maximum: 100
+          default: 10
+        similarityThreshold:
+          type: number
+          format: float
+          minimum: 0
+          maximum: 1
+          default: 0.2
+    RetrievalResponse:
+      type: object
+      required: [question, results]
+      properties:
+        question:
+          type: string
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/RetrievalChunk'
+    RetrievalChunk:
+      type: object
+      required: [content, score, documentId, datasetId]
+      properties:
+        content:
+          type: string
+        score:
+          type: number
+          format: float
+        documentId:
+          type: string
+        documentName:
+          type: string
+        datasetId:
+          type: string
+        pageNumber:
+          type: integer
+    Error:
+      type: object
+      required: [code, message]
+      properties:
+        code:
+          type: string
+        message:
+          type: string
+        details:
+          type: object
+          additionalProperties: true

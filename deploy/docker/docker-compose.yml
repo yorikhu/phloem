@@ -1,0 +1,62 @@
+# Phloem Docker Compose — Full Stack (Gateway + Web + RAGFlow)
+#
+# Usage:
+#   cp .env.example .env
+#   docker compose up -d --wait
+#
+# For Lite mode (Infinity only, no ES):
+#   docker compose -f docker-compose.yml -f docker-compose.lite.yml up -d
+
+services:
+  # ── Phloem Gateway ──
+  gateway:
+    build:
+      context: ../..
+      dockerfile: deploy/docker/Dockerfile.gateway
+    ports:
+      - '${PHLOEM_PORT:-3000}:3000'
+    environment:
+      - PHLOEM_ADAPTER_TYPE=${PHLOEM_ADAPTER_TYPE:-mock}
+      - PHLOEM_RAGFLOW_URL=http://ragflow-server:9380
+      - PHLOEM_RAGFLOW_API_KEY=${PHLOEM_RAGFLOW_API_KEY:-}
+      - PHLOEM_LOG_LEVEL=${PHLOEM_LOG_LEVEL:-info}
+    depends_on:
+      ragflow-server:
+        condition: service_healthy
+    restart: unless-stopped
+
+  # ── Phloem Web ──
+  web:
+    build:
+      context: ../..
+      dockerfile: deploy/docker/Dockerfile.web
+    ports:
+      - '${WEB_PORT:-5173}:80'
+    depends_on:
+      - gateway
+    restart: unless-stopped
+
+  # ── RAGFlow Engine (built from vendor/ragflow) ──
+  ragflow-server:
+    build:
+      context: ../../vendor/ragflow
+      dockerfile: Dockerfile
+      args:
+        - DOC_ENGINE=infinity
+    ports:
+      - '${RAGFLOW_PORT:-9380}:9380'
+    environment:
+      - DOC_ENGINE=infinity
+      - API_HOST=0.0.0.0
+    volumes:
+      - ragflow-data:/data
+    healthcheck:
+      test: ['CMD', 'curl', '-f', 'http://localhost:9380/health']
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 60s
+    restart: unless-stopped
+
+volumes:
+  ragflow-data:

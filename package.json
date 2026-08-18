@@ -1,0 +1,50 @@
+{
+  "name": "phloem",
+  "private": true,
+  "version": "0.1.0",
+  "description": "An open-source, self-hosted knowledge base platform built on top of RAGFlow's deep document parsing and hybrid retrieval engine.",
+  "license": "Apache-2.0",
+  "author": "Phytul",
+  "homepage": "https://github.com/phytul/phloem",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/phytul/phloem.git"
+  },
+  "bugs": {
+    "url": "https://github.com/phytul/phloem/issues"
+  },
+  "type": "module",
+  "engines": {
+    "node": ">=22.0.0",
+    "pnpm": ">=9.0.0"
+  },
+  "packageManager": "pnpm@9.12.0",
+  "scripts": {
+    "build": "turbo run build",
+    "dev": "turbo run dev",
+    "lint": "turbo run lint",
+    "typecheck": "turbo run typecheck",
+    "test": "turbo run test",
+    "test:unit": "turbo run test:unit",
+    "test:contract": "turbo run test:contract",
+    "test:e2e": "turbo run test:e2e",
+    "format": "prettier --write \"**/*.{ts,tsx,js,jsx,json,md,yaml,yml}\"",
+    "format:check": "prettier --check \"**/*.{ts,tsx,js,jsx,json,md,yaml,yml}\"",
+    "changeset": "changeset",
+    "version-packages": "changeset version",
+    "release": "turbo run build && changeset publish",
+    "prepare": "husky"
+  },
+  "devDependencies": {
+    "@changesets/cli": "^2.27.9",
+    "@commitlint/cli": "^19.6.0",
+    "@commitlint/config-conventional": "^19.6.0",
+    "@phloem/eslint-config": "workspace:*",
+    "eslint": "^9.16.0",
+    "husky": "^9.1.7",
+    "lint-staged": "^15.2.10",
+    "prettier": "^3.4.2",
+    "turbo": "^2.3.3",
+    "typescript": "^5.7.2"
+  }
+}

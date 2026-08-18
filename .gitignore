@@ -1,0 +1,51 @@
+# Dependencies
+node_modules/
+.pnpm-store/
+
+# Build outputs
+dist/
+build/
+coverage/
+*.tsbuildinfo
+
+# Environment
+.env
+.env.local
+.env.*.local
+!.env.example
+
+# IDE
+.idea/
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+pnpm-debug.log*
+
+# Testing
+.nyc_output/
+test-results/
+playwright-report/
+
+# Turbo
+.turbo/
+
+# Changesets
+.changeset/
+
+# Vendor (submodule content is tracked by git, but build artifacts are not)
+vendor/ragflow/.git
+vendor/ragflow/**/node_modules/
+vendor/ragflow/**/__pycache__/
+vendor/ragflow/**/target/
+_tmp_*
