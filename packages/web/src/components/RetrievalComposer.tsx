@@ -148,7 +148,7 @@ export default function RetrievalComposer({
       style={{
         background: 'var(--ph-bg-surface)',
         border: '1px solid var(--ph-border-default)',
-        borderRadius: 'var(--ph-radius)',
+        borderRadius: 'var(--ph-radius-lg)',
         boxShadow: 'var(--ph-shadow-popup)',
         padding: '12px 12px 8px',
         transition: 'border-color var(--ph-transition-fast)',
@@ -159,14 +159,25 @@ export default function RetrievalComposer({
         value={value}
         onChange={(e) => onValueChange(e.target.value)}
         onKeyDown={(e) => {
-          // Enter sends; Ctrl/Cmd+Enter (or Shift+Enter) inserts a newline.
-          if (e.key === 'Enter' && (e.ctrlKey || e.metaKey || e.shiftKey)) {
-            return; // native newline
-          }
-          if (e.key === 'Enter') {
+          if (e.key !== 'Enter') return;
+          // Enter sends; Ctrl/Cmd/Shift+Enter inserts a newline. Only
+          // Shift+Enter is native in browsers, so insert the break manually
+          // (execCommand keeps the undo stack; fall back to value splice).
+          if (e.ctrlKey || e.metaKey || e.shiftKey) {
             e.preventDefault();
-            if (canSend) onSearch();
+            const el = e.currentTarget;
+            const inserted = document.execCommand('insertLineBreak');
+            if (!inserted) {
+              const { selectionStart, selectionEnd, value } = el;
+              onValueChange(`${value.slice(0, selectionStart)}\n${value.slice(selectionEnd)}`);
+              requestAnimationFrame(() => {
+                el.selectionStart = el.selectionEnd = selectionStart + 1;
+              });
+            }
+            return;
           }
+          e.preventDefault();
+          if (canSend) onSearch();
         }}
         placeholder={t('retrieval.placeholder')}
         rows={2}
