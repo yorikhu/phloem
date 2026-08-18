@@ -183,6 +183,44 @@ body {
   border-color: var(--ph-accent);
 }
 
+/* Dataset scope popover — search row + checkable list */
+.ph-scope-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 8px;
+  border-radius: var(--ph-radius-small);
+  cursor: pointer;
+  font-size: 13px;
+  color: var(--ph-text-primary);
+  transition: background var(--ph-transition-fast);
+}
+
+.ph-scope-item:hover {
+  background: var(--ph-bg-hover);
+}
+
+.ph-scope-item-name {
+  flex: 1;
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.ph-scope-count {
+  font-size: 11px;
+  font-family: var(--ph-font-mono);
+  color: var(--ph-text-tertiary);
+}
+
+.ph-scope-empty {
+  padding: 16px 8px;
+  text-align: center;
+  font-size: 12px;
+  color: var(--ph-text-tertiary);
+}
+
 /* ── AntD overrides (deep) ── */
 .ant-btn-primary {
   box-shadow: none;
