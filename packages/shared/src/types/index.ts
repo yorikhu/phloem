@@ -3,6 +3,18 @@
  * These mirror the OpenAPI specification (openapi.yaml) at the repo root.
  */
 
+// ── Auth ──
+
+export type UserRole = 'owner' | 'admin' | 'member';
+
+export interface CurrentUser {
+  id: string;
+  name: string;
+  email: string;
+  role: UserRole;
+  avatarUrl?: string;
+}
+
 // ── Health ──
 
 export type ServiceStatus = 'ok' | 'degraded' | 'error';

@@ -3,7 +3,7 @@
  */
 
 import { http, HttpResponse } from 'msw';
-import { mockDatasets, mockDocuments, mockRetrievalResults } from './data.js';
+import { mockCurrentUser, mockDatasets, mockDocuments, mockRetrievalResults } from './data.js';
 import type { Dataset, Document } from '@phloem/shared';
 
 const API = '/api/v1';
@@ -12,6 +12,8 @@ let datasets = [...mockDatasets];
 const documents = { ...mockDocuments };
 
 export const handlers = [
+  // ── Auth ──
+  http.get(`${API}/auth/me`, () => HttpResponse.json(mockCurrentUser)),
   // ── Health ──
   http.get(`${API}/health`, () =>
     HttpResponse.json({

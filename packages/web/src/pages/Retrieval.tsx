@@ -5,17 +5,21 @@
  * minimal result cards with content preview.
  */
 
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Input, Button, Select, Spin, Empty, Typography, Tag } from 'antd';
 import { SearchOutlined } from '@ant-design/icons';
 import { useQuery, useMutation } from '@tanstack/react-query';
+import { useSearchParams } from 'react-router-dom';
 import { api } from '../api/client.js';
 import type { RetrievalChunk } from '@phloem/shared';
 
 const { Text, Paragraph } = Typography;
 
 export default function RetrievalPage() {
-  const [question, setQuestion] = useState('');
+  const [searchParams] = useSearchParams();
+  const initialQuestion = searchParams.get('q') ?? '';
+
+  const [question, setQuestion] = useState(initialQuestion);
   const [selectedDatasets, setSelectedDatasets] = useState<string[]>([]);
 
   const { data: datasetsData } = useQuery({
@@ -26,9 +30,9 @@ export default function RetrievalPage() {
   const datasets = datasetsData?.data ?? [];
 
   const retrieveMutation = useMutation({
-    mutationFn: () =>
+    mutationFn: (q: string) =>
       api.retrieve({
-        question,
+        question: q,
         datasetIds: selectedDatasets.length > 0 ? selectedDatasets : datasets.map((d) => d.id),
         topK: 10,
       }),
@@ -38,8 +42,18 @@ export default function RetrievalPage() {
 
   const handleSearch = () => {
     if (!question.trim()) return;
-    retrieveMutation.mutate();
+    retrieveMutation.mutate(question.trim());
   };
+
+  // Deep link support: /retrieval?q=... auto-runs the search
+  // (e.g. from the global command palette)
+  const autoRanRef = useRef(false);
+  useEffect(() => {
+    if (initialQuestion && !autoRanRef.current && datasets.length > 0) {
+      autoRanRef.current = true;
+      retrieveMutation.mutate(initialQuestion);
+    }
+  }, [initialQuestion, datasets.length]);
 
   return (
     <div style={{ maxWidth: 720, margin: '0 auto' }}>

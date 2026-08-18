@@ -5,6 +5,16 @@
 
 import { z } from 'zod';
 
+// ── Auth ──
+
+export const currentUserSchema = z.object({
+  id: z.string(),
+  name: z.string(),
+  email: z.string().email(),
+  role: z.enum(['owner', 'admin', 'member']),
+  avatarUrl: z.string().url().optional(),
+});
+
 // ── Health ──
 
 export const healthStatusSchema = z.object({

@@ -2,11 +2,18 @@
  * Mock data for MSW handlers — simulates a populated knowledge base.
  */
 
-import type { Dataset, Document, RetrievalChunk } from '@phloem/shared';
+import type { Dataset, Document, RetrievalChunk, CurrentUser } from '@phloem/shared';
 
 const now = new Date().toISOString();
 const dayAgo = new Date(Date.now() - 86400000).toISOString();
 const weekAgo = new Date(Date.now() - 604800000).toISOString();
+
+export const mockCurrentUser: CurrentUser = {
+  id: 'user-001',
+  name: 'You You',
+  email: 'you@phloem.dev',
+  role: 'owner',
+};
 
 export const mockDatasets: Dataset[] = [
   {

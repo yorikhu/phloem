@@ -6,6 +6,7 @@
  */
 
 import type {
+  CurrentUser,
   Dataset,
   DatasetCreate,
   Document,
@@ -38,6 +39,9 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
 }
 
 export const api = {
+  // Auth
+  me: () => request<CurrentUser>('/auth/me'),
+
   // Health
   health: () => request<HealthStatus>('/health'),
 
