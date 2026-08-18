@@ -85,7 +85,7 @@ export default function TeamSettingsPage() {
   }));
 
   return (
-    <div style={{ padding: '32px 40px', maxWidth: 940 }}>
+    <div style={{ padding: '32px 40px' }}>
       {/* Header */}
       <div
         style={{

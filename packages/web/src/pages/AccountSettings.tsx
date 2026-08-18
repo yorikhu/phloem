@@ -60,7 +60,7 @@ export default function AccountSettingsPage() {
   const u: CurrentUser | undefined = user;
 
   return (
-    <div style={{ padding: '32px 40px', maxWidth: 560 }}>
+    <div style={{ padding: '32px 40px' }}>
       <Title level={4} style={{ marginBottom: 28 }}>
         {t('settings.account.title')}
       </Title>

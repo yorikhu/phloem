@@ -133,7 +133,7 @@ export default function ModelsSettingsPage() {
   const providers: LLMProvider[] = data?.data ?? [];
 
   return (
-    <div style={{ padding: '32px 40px', maxWidth: 900 }}>
+    <div style={{ padding: '32px 40px' }}>
       {/* Header */}
       <div style={{ marginBottom: 28 }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
