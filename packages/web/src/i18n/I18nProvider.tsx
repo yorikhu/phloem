@@ -1,8 +1,10 @@
 /**
  * I18nProvider — React binding for the i18n core.
  *
- * Holds locale state, syncs <html lang> and persists preference.
- * `useI18n()` returns { locale, setLocale, t }.
+ * Holds committed locale state (persisted on setLocale) plus an
+ * optional preview overlay used by the settings draft. Effective
+ * locale = preview ?? committed; clearing the preview restores the
+ * committed choice without re-detection.
  */
 
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
@@ -10,19 +12,33 @@ import type { DictKey, Locale } from './dictionaries.js';
 import { detectLocale, localeToHtmlLang, persistLocale, translate } from './core.js';
 
 type I18nContextValue = {
+  /** Effective locale (preview ?? committed). */
   locale: Locale;
+  /** Committed locale — what would survive a reload. */
+  savedLocale: Locale;
+  /** Commit a locale choice and persist it. Clears any preview. */
   setLocale: (locale: Locale) => void;
+  /** Show a locale temporarily; null restores the committed one. */
+  previewLocale: (locale: Locale | null) => void;
   t: (key: DictKey, params?: Record<string, string | number>) => string;
 };
 
 const I18nContext = createContext<I18nContextValue | null>(null);
 
 export function I18nProvider({ children }: { children: React.ReactNode }) {
-  const [locale, setLocaleState] = useState<Locale>(() => detectLocale());
+  const [committed, setCommitted] = useState<Locale>(() => detectLocale());
+  const [preview, setPreview] = useState<Locale | null>(null);
+
+  const locale = preview ?? committed;
 
   const setLocale = useCallback((next: Locale) => {
-    setLocaleState(next);
+    setCommitted(next);
+    setPreview(null);
     persistLocale(next);
+  }, []);
+
+  const previewLocale = useCallback((next: Locale | null) => {
+    setPreview(next);
   }, []);
 
   useEffect(() => {
@@ -34,7 +50,10 @@ export function I18nProvider({ children }: { children: React.ReactNode }) {
     [locale],
   );
 
-  const value = useMemo(() => ({ locale, setLocale, t }), [locale, setLocale, t]);
+  const value = useMemo(
+    () => ({ locale, savedLocale: committed, setLocale, previewLocale, t }),
+    [locale, committed, setLocale, previewLocale, t],
+  );
   return <I18nContext.Provider value={value}>{children}</I18nContext.Provider>;
 }
 

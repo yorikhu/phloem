@@ -11,6 +11,8 @@ export const en = {
   'common.create': 'Create',
   'common.delete': 'Delete',
   'common.settings': 'Settings',
+  'common.save': 'Save',
+  'common.discard': 'Discard changes',
   'common.signOut': 'Sign out',
   'common.loading': 'Loading...',
   'common.page': 'Page',
@@ -40,6 +42,7 @@ export const en = {
   'settings.hotkeysReset': 'Reset shortcuts',
   'settings.hotkeySearch': 'Global search',
   'settings.hotkeyNavigate': 'Navigate results',
+  'settings.draftHint': 'Changes apply only after you save.',
 
   // ── Command palette ──
   'palette.placeholder': 'Search datasets, documents, or ask anything...',
@@ -112,6 +115,8 @@ export const zh: Dict = {
   'common.create': '创建',
   'common.delete': '删除',
   'common.settings': '设置',
+  'common.save': '保存',
+  'common.discard': '放弃修改',
   'common.signOut': '退出登录',
   'common.loading': '加载中...',
   'common.page': '页面',
@@ -141,6 +146,7 @@ export const zh: Dict = {
   'settings.hotkeysReset': '重置快捷键',
   'settings.hotkeySearch': '全局搜索',
   'settings.hotkeyNavigate': '结果导航',
+  'settings.draftHint': '修改需保存后才会生效。',
 
   // ── Command palette ──
   'palette.placeholder': '搜索数据集、文档，或直接提问...',

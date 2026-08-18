@@ -30,6 +30,8 @@ export interface HotkeysContextValue {
   useHandler: (action: HotkeyAction, handler: () => void) => void;
   /** Persist a new combo for an action. Returns false on conflict. */
   setCombo: (action: HotkeyAction, combo: Combo) => boolean;
+  /** Apply a whole action→combo map at once (used by settings save). */
+  applyAll: (map: Record<HotkeyAction, Combo>) => void;
   /** Detect conflicts: returns the action currently owning the combo. */
   findConflict: (combo: Combo, exclude: HotkeyAction) => HotkeyAction | null;
   /** Reset all combos to defaults. */
@@ -102,9 +104,27 @@ export function HotkeysProvider({ children }: { children: React.ReactNode }) {
     localStorage.removeItem(HOTKEY_STORAGE_KEY);
   }, []);
 
+  const applyAll = useCallback((map: Record<HotkeyAction, Combo>) => {
+    setHotkeys((prev) => {
+      // Only persist actions whose combo actually changed.
+      const next = { ...prev };
+      let changed = false;
+      for (const action of Object.keys(map) as HotkeyAction[]) {
+        if (next[action] !== map[action]) {
+          next[action] = map[action];
+          changed = true;
+        }
+      }
+      if (changed) {
+        localStorage.setItem(HOTKEY_STORAGE_KEY, JSON.stringify(next));
+      }
+      return next;
+    });
+  }, []);
+
   const value = useMemo<HotkeysContextValue>(
-    () => ({ hotkeys, useHandler: register, setCombo, findConflict, reset }),
-    [hotkeys, register, setCombo, findConflict, reset],
+    () => ({ hotkeys, useHandler: register, setCombo, applyAll, findConflict, reset }),
+    [hotkeys, register, setCombo, applyAll, findConflict, reset],
   );
 
   return <HotkeysContext.Provider value={value}>{children}</HotkeysContext.Provider>;
