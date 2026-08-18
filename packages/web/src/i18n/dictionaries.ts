@@ -168,7 +168,7 @@ export const en = {
   'chat.ask': 'Send',
   'chat.regenerate': 'Regenerate',
   'chat.emptyTitle': 'Ask your knowledge base',
-  'chat.sendHint': 'Enter to send · Shift+Enter for a new line',
+  'chat.sendHint': 'Enter to send',
 
   // ── Command palette ──
   'palette.placeholder': 'Search datasets, documents, or ask anything...',
@@ -418,7 +418,7 @@ export const zh: Dict = {
   'chat.ask': '发送',
   'chat.regenerate': '重新生成',
   'chat.emptyTitle': '向知识库提问',
-  'chat.sendHint': 'Enter 发送 · Shift+Enter 换行',
+  'chat.sendHint': '回车发送',
 
   // ── Command palette ──
   'palette.placeholder': '搜索数据集、文档，或直接提问...',

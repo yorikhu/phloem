@@ -13,7 +13,6 @@ import {
   DeleteOutlined,
   EditOutlined,
   RobotOutlined,
-  SendOutlined,
   UserOutlined,
 } from '@ant-design/icons';
 import type { MenuProps } from 'antd';
@@ -21,6 +20,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '../api/index.js';
 import { chatStream } from '../api/modules/chat.js';
 import { useI18n } from '../i18n/index.js';
+import ChatComposer from '../components/ChatComposer.js';
 import type { ChatSession, ChatMessage } from '@phloem/shared';
 
 const { Text } = Typography;
@@ -86,6 +86,14 @@ export default function ChatPage() {
     setMessages(msgsData?.data ?? []);
   }, [msgsData]);
 
+  // ── Datasets for scope selector ──
+  const { data: datasetsData } = useQuery({
+    queryKey: ['datasets'],
+    queryFn: () => api.datasets.list(),
+  });
+  const datasets = datasetsData?.data ?? [];
+  const [selectedDatasets, setSelectedDatasets] = useState<string[]>([]);
+
   // ── Composer ──
   const [input, setInput] = useState('');
   const [streamingContent, setStreamingContent] = useState('');
@@ -123,7 +131,7 @@ export default function ChatPage() {
 
       for await (const event of chatStream({
         question: q,
-        datasetIds: [],
+        datasetIds: selectedDatasets,
         sessionId: activeSessionId,
       })) {
         if (event.type === 'delta' && event.content) {
@@ -395,39 +403,15 @@ export default function ChatPage() {
         {/* Composer */}
         <div style={{ flexShrink: 0, padding: '12px 24px 18px' }}>
           <div style={{ maxWidth: COLUMN_WIDTH, margin: '0 auto' }}>
-            <div className="ph-chat-composer">
-              <textarea
-                value={input}
-                onChange={(e) => setInput(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter' && !e.shiftKey && !e.nativeEvent.isComposing) {
-                    e.preventDefault();
-                    void handleSend();
-                  }
-                }}
-                placeholder={t('chat.placeholder')}
-                rows={1}
-              />
-              <button
-                type="button"
-                className="ph-chat-send"
-                disabled={!input.trim() || isStreaming}
-                onClick={() => void handleSend()}
-                aria-label={t('chat.ask')}
-              >
-                <SendOutlined />
-              </button>
-            </div>
-            <div
-              style={{
-                textAlign: 'center',
-                fontSize: 11,
-                color: 'var(--ph-text-tertiary)',
-                marginTop: 8,
-              }}
-            >
-              {t('chat.sendHint')}
-            </div>
+            <ChatComposer
+              datasets={datasets}
+              selectedDatasets={selectedDatasets}
+              onSelectedDatasetsChange={setSelectedDatasets}
+              value={input}
+              onValueChange={setInput}
+              onSend={handleSend}
+              sending={isStreaming}
+            />
           </div>
         </div>
       </div>

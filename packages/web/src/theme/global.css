@@ -316,63 +316,6 @@ body {
   font-family: var(--ph-font-mono);
 }
 
-/* Composer card */
-.ph-chat-composer {
-  display: flex;
-  align-items: flex-end;
-  gap: 8px;
-  padding: 10px 12px;
-  background: var(--ph-bg-surface);
-  border: 1px solid var(--ph-border-default);
-  border-radius: 12px;
-  transition: border-color var(--ph-transition-fast), box-shadow var(--ph-transition-fast);
-}
-
-.ph-chat-composer:focus-within {
-  border-color: var(--ph-accent);
-  box-shadow: 0 0 0 3px var(--ph-accent-dim);
-}
-
-.ph-chat-composer textarea {
-  flex: 1;
-  resize: none;
-  border: none;
-  outline: none;
-  background: transparent;
-  color: var(--ph-text-primary);
-  font-size: 14px;
-  line-height: 1.6;
-  font-family: inherit;
-  overflow-y: auto;
-  min-height: 24px;
-  max-height: 140px;
-}
-
-.ph-chat-send {
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-  border: none;
-  cursor: pointer;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  background: var(--ph-accent);
-  color: #fff;
-  font-size: 15px;
-  transition: background var(--ph-transition-fast), opacity var(--ph-transition-fast);
-  flex-shrink: 0;
-}
-
-.ph-chat-send:hover:not(:disabled) {
-  background: var(--ph-accent-hover);
-}
-
-.ph-chat-send:disabled {
-  opacity: 0.4;
-  cursor: not-allowed;
-}
-
 /* Citation chip */
 .ph-chat-citation {
   display: inline-flex;

@@ -1,63 +1,41 @@
 /**
- * RetrievalComposer — Codex-style prompt box for retrieval.
+ * ChatComposer — Codex-style prompt box for chat.
  *
- * Card container with auto-growing textarea, bottom-left scope/strategy
- * controls and bottom-right voice + send actions. Reads theme tokens
- * (--ph-*) so it works on both dark and light palettes.
+ * Shares the same visual language and keyboard shortcuts as
+ * RetrievalComposer: card container, auto-growing textarea,
+ * dataset scope (left), voice + send (right).
  */
 
 import { useEffect, useRef, useState } from 'react';
-import { Button, Dropdown, Popover, Tooltip } from 'antd';
-import type { MenuProps } from 'antd';
-import {
-  ArrowUpOutlined,
-  AudioOutlined,
-  DatabaseOutlined,
-  ExperimentOutlined,
-  StopOutlined,
-} from '@ant-design/icons';
-import type { Dataset, RetrievalStrategy } from '@phloem/shared';
+import { Button, Popover, Tooltip } from 'antd';
+import { ArrowUpOutlined, AudioOutlined, DatabaseOutlined } from '@ant-design/icons';
+import type { Dataset } from '@phloem/shared';
 import { useI18n } from '../i18n/index.js';
 import { matchesCombo, useHotkeys } from '../hotkeys/index.js';
 import DatasetScopePanel from './composer/DatasetScopePanel.js';
 import { useVoiceInput } from './composer/useVoiceInput.js';
 
-const STRATEGY_ICON: Record<RetrievalStrategy, React.ReactNode> = {
-  hybrid: <ExperimentOutlined />,
-  vector: <ArrowUpOutlined rotate={45} />,
-  keyword: <StopOutlined rotate={45} />,
-};
-
-/** Capitalized strategy key → i18n key suffix (hybrid → Hybrid). */
-function strategyKeySuffix(s: RetrievalStrategy): string {
-  return `${s[0]!.toUpperCase()}${s.slice(1)}`;
-}
-
 const MAX_TEXTAREA_HEIGHT = 200;
 
-interface RetrievalComposerProps {
+interface ChatComposerProps {
   datasets: Dataset[];
   selectedDatasets: string[];
   onSelectedDatasetsChange: (ids: string[]) => void;
-  strategy: RetrievalStrategy;
-  onStrategyChange: (s: RetrievalStrategy) => void;
   value: string;
   onValueChange: (v: string) => void;
-  onSearch: () => void;
-  searching: boolean;
+  onSend: () => void;
+  sending: boolean;
 }
 
-export default function RetrievalComposer({
+export default function ChatComposer({
   datasets,
   selectedDatasets,
   onSelectedDatasetsChange,
-  strategy,
-  onStrategyChange,
   value,
   onValueChange,
-  onSearch,
-  searching,
-}: RetrievalComposerProps) {
+  onSend,
+  sending,
+}: ChatComposerProps) {
   const { t } = useI18n();
   const { hotkeys } = useHotkeys();
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -73,7 +51,7 @@ export default function RetrievalComposer({
     el.style.overflowY = capped ? 'auto' : 'hidden';
   }, [value]);
 
-  // ── Voice input (Web Speech API, best effort) ──
+  // ── Voice input ──
   const { listening, toggle: toggleVoice } = useVoiceInput({
     onResult: onValueChange,
     unsupportedMessage: t('retrieval.voiceUnsupported'),
@@ -84,19 +62,7 @@ export default function RetrievalComposer({
       ? t('retrieval.scopeAll')
       : t('retrieval.scopeN', { count: selectedDatasets.length });
 
-  const strategyLabel = (s: RetrievalStrategy) =>
-    t(`retrieval.strategy${strategyKeySuffix(s)}` as never);
-
-  const strategyMenu: MenuProps['items'] = (['hybrid', 'vector', 'keyword'] as const).map((s) => ({
-    key: s,
-    label: (
-      <span style={{ fontSize: 13 }}>
-        {STRATEGY_ICON[s]} {strategyLabel(s)}
-      </span>
-    ),
-  }));
-
-  const canSend = value.trim().length > 0 && !searching;
+  const canSend = value.trim().length > 0 && !sending;
 
   return (
     <div
@@ -117,26 +83,26 @@ export default function RetrievalComposer({
         onKeyDown={(e) => {
           if (e.key !== 'Enter') return;
           // Enter sends; the configured newline combo (default ⌘/Ctrl+Enter)
-          // or Shift+Enter inserts a newline. Only Shift+Enter is native in
-          // browsers, so insert the break manually (execCommand keeps the
-          // undo stack; fall back to value splice).
-          if (e.shiftKey || matchesCombo(e, hotkeys.composerNewline)) {
-            e.preventDefault();
-            const el = e.currentTarget;
-            const inserted = document.execCommand('insertLineBreak');
-            if (!inserted) {
-              const { selectionStart, selectionEnd, value: val } = el;
-              onValueChange(`${val.slice(0, selectionStart)}\n${val.slice(selectionEnd)}`);
-              requestAnimationFrame(() => {
-                el.selectionStart = el.selectionEnd = selectionStart + 1;
-              });
+          // or Shift+Enter inserts a newline. IME composing is respected.
+          if (e.nativeEvent.isComposing || e.shiftKey || matchesCombo(e, hotkeys.composerNewline)) {
+            if (!e.nativeEvent.isComposing) {
+              e.preventDefault();
+              const el = e.currentTarget;
+              const inserted = document.execCommand('insertLineBreak');
+              if (!inserted) {
+                const { selectionStart, selectionEnd, value: val } = el;
+                onValueChange(`${val.slice(0, selectionStart)}\n${val.slice(selectionEnd)}`);
+                requestAnimationFrame(() => {
+                  el.selectionStart = el.selectionEnd = selectionStart + 1;
+                });
+              }
             }
             return;
           }
           e.preventDefault();
-          if (canSend) onSearch();
+          if (canSend) onSend();
         }}
-        placeholder={t('retrieval.placeholder')}
+        placeholder={t('chat.placeholder')}
         rows={2}
         style={{
           display: 'block',
@@ -162,7 +128,7 @@ export default function RetrievalComposer({
           gap: 8,
         }}
       >
-        {/* Bottom-left: scope + strategy */}
+        {/* Bottom-left: scope */}
         <div style={{ display: 'flex', gap: 6, alignItems: 'center', minWidth: 0 }}>
           <Popover
             trigger="click"
@@ -182,21 +148,6 @@ export default function RetrievalComposer({
               <span style={{ fontSize: 12, color: 'var(--ph-text-secondary)' }}>{scopeLabel}</span>
             </Button>
           </Popover>
-
-          <Dropdown
-            trigger={['click']}
-            menu={{
-              items: strategyMenu,
-              selectedKeys: [strategy],
-              onClick: ({ key }) => onStrategyChange(key as RetrievalStrategy),
-            }}
-          >
-            <Button size="small" type="text" icon={STRATEGY_ICON[strategy]}>
-              <span style={{ fontSize: 12, color: 'var(--ph-text-secondary)' }}>
-                {strategyLabel(strategy)}
-              </span>
-            </Button>
-          </Dropdown>
         </div>
 
         {/* Bottom-right: voice + send */}
@@ -210,14 +161,14 @@ export default function RetrievalComposer({
               onClick={toggleVoice}
             />
           </Tooltip>
-          <Tooltip title={t('retrieval.sendHint')}>
+          <Tooltip title={t('chat.sendHint')}>
             <Button
               size="small"
               type="primary"
               shape="circle"
               icon={<ArrowUpOutlined />}
               disabled={!canSend}
-              onClick={onSearch}
+              onClick={onSend}
             />
           </Tooltip>
         </div>
