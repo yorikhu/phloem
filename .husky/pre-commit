@@ -1,1 +1,4 @@
+# Clean WorkBuddy sandbox temp artifacts before every commit
+rm -f ./_tmp_*
+
 pnpm exec lint-staged
