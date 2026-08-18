@@ -1,15 +1,20 @@
 /**
  * ChatPage — knowledge base Q&A with streaming (F2.2, F2.4)
  * Route: /chat
+ *
+ * Layout: session rail (left) + conversation column.
+ * All colors run through --ph-* tokens; chat-specific classes
+ * (.ph-chat-*) live in theme/global.css.
  */
 import { useState, useRef, useEffect, useCallback } from 'react';
-import { Button, Input, Typography, Spin, Empty, Tag, Dropdown, Modal, message } from 'antd';
+import { Button, Input, Typography, Spin, Empty, Dropdown, Modal, message } from 'antd';
 import {
-  SendOutlined,
   PlusOutlined,
   DeleteOutlined,
   EditOutlined,
   RobotOutlined,
+  SendOutlined,
+  UserOutlined,
 } from '@ant-design/icons';
 import type { MenuProps } from 'antd';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -20,6 +25,19 @@ import type { ChatSession, ChatMessage } from '@phloem/shared';
 
 const { Text } = Typography;
 
+/** Conversation column max width — keeps line lengths readable. */
+const COLUMN_WIDTH = 760;
+
+/** Compact time for session meta / message timestamps. */
+function formatTime(iso: string): string {
+  const d = new Date(iso);
+  const now = new Date();
+  const sameDay = d.toDateString() === now.toDateString();
+  const hm = `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
+  if (sameDay) return hm;
+  return `${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')} ${hm}`;
+}
+
 export default function ChatPage() {
   const { t } = useI18n();
   const qc = useQueryClient();
@@ -29,6 +47,9 @@ export default function ChatPage() {
     queryKey: ['chat-sessions'],
     queryFn: () => api.chat.listSessions({ pageSize: 50 }),
   });
+  const sessions: ChatSession[] = sessionsData?.data ?? [];
+
+  const [activeSessionId, setActiveSessionId] = useState<string | null>(sessions[0]?.id ?? null);
 
   const createSession = useMutation({
     mutationFn: () => api.chat.createSession({}),
@@ -42,8 +63,9 @@ export default function ChatPage() {
     mutationFn: (id: string) => api.chat.deleteSession(id),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['chat-sessions'] });
-      if (activeSessionId) delete messagesCache.current[activeSessionId];
-      if (activeSessionId) setActiveSessionId(sessions?.[0]?.id ?? null);
+      setActiveSessionId((prev) =>
+        prev ? (sessions.find((s) => s.id !== prev)?.id ?? null) : null,
+      );
     },
   });
 
@@ -52,15 +74,8 @@ export default function ChatPage() {
     onSuccess: () => qc.invalidateQueries({ queryKey: ['chat-sessions'] }),
   });
 
-  const sessions: ChatSession[] = sessionsData?.data ?? [];
-
-  // ── Active session ──
-  const [activeSessionId, setActiveSessionId] = useState<string | null>(sessions[0]?.id ?? null);
+  // ── Messages ──
   const [messages, setMessages] = useState<ChatMessage[]>([]);
-  // Cache for sessions not currently active
-  const messagesCache = useRef<Record<string, ChatMessage[]>>({});
-
-  // Load messages when active session changes
   const { data: msgsData, isLoading: msgsLoading } = useQuery({
     queryKey: ['chat-messages', activeSessionId],
     queryFn: () => api.chat.listMessages(activeSessionId!),
@@ -82,8 +97,8 @@ export default function ChatPage() {
   }, []);
 
   useEffect(() => {
-    if (!isStreaming) scrollToBottom();
-  }, [messages, isStreaming, scrollToBottom]);
+    scrollToBottom();
+  }, [messages, streamingContent, isStreaming, scrollToBottom]);
 
   const handleSend = async () => {
     if (!input.trim() || isStreaming || !activeSessionId) return;
@@ -150,7 +165,7 @@ export default function ChatPage() {
       onClick: () => {
         Modal.confirm({
           title: t('chat.renameSession'),
-          content: <Input defaultValue={s.title} id="rename-input" placeholder="会话标题" />,
+          content: <Input defaultValue={s.title} id="rename-input" placeholder={s.title} />,
           onOk: () => {
             const v = (document.getElementById('rename-input') as HTMLInputElement)?.value;
             if (v?.trim()) renameSession.mutate({ id: s.id, title: v.trim() });
@@ -177,34 +192,50 @@ export default function ChatPage() {
 
   return (
     <div style={{ display: 'flex', height: '100%', overflow: 'hidden' }}>
-      {/* ── Left sidebar: session list ── */}
+      {/* ── Session rail ── */}
       <div
         style={{
-          width: 240,
+          width: 264,
+          flexShrink: 0,
           borderRight: '1px solid var(--ph-border-subtle)',
+          background: 'var(--ph-bg-surface)',
           display: 'flex',
           flexDirection: 'column',
-          background: 'var(--ph-bg-elevated)',
-          flexShrink: 0,
         }}
       >
+        {/* Rail header */}
         <div
           style={{
-            padding: '16px 12px 12px',
-            borderBottom: '1px solid var(--ph-border-subtle)',
+            padding: '14px 14px 10px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            gap: 8,
           }}
         >
+          <span
+            style={{
+              fontSize: 12,
+              fontWeight: 600,
+              color: 'var(--ph-text-tertiary)',
+              letterSpacing: '0.05em',
+              textTransform: 'uppercase',
+            }}
+          >
+            {t('chat.sessions')}
+          </span>
           <Button
-            block
+            size="small"
+            type="text"
             icon={<PlusOutlined />}
             onClick={() => createSession.mutate()}
             loading={createSession.isPending}
-          >
-            {t('chat.newSession')}
-          </Button>
+            aria-label={t('chat.newSession')}
+          />
         </div>
 
-        <div style={{ flex: 1, overflowY: 'auto', padding: '8px 6px' }}>
+        {/* Session list */}
+        <div style={{ flex: 1, overflowY: 'auto', padding: '4px 10px 12px' }}>
           {sessionsLoading ? (
             <Spin style={{ display: 'block', margin: '24px auto' }} />
           ) : sessions.length === 0 ? (
@@ -225,43 +256,13 @@ export default function ChatPage() {
                 menu={{ items: sessionContextMenu(s) ?? [] }}
               >
                 <div
+                  className={`ph-chat-session${s.id === activeSessionId ? ' active' : ''}`}
                   onClick={() => setActiveSessionId(s.id)}
-                  style={{
-                    padding: '10px 12px',
-                    marginBottom: 2,
-                    borderRadius: 'var(--ph-radius-small)',
-                    cursor: 'pointer',
-                    background:
-                      s.id === activeSessionId
-                        ? 'var(--ph-accent-dim, rgba(76,106,240,0.12))'
-                        : 'transparent',
-                    borderLeft:
-                      s.id === activeSessionId
-                        ? '2px solid var(--ph-accent)'
-                        : '2px solid transparent',
-                  }}
                 >
-                  <div
-                    style={{
-                      fontSize: 13,
-                      fontWeight: s.id === activeSessionId ? 500 : 400,
-                      color: 'var(--ph-text-primary)',
-                      overflow: 'hidden',
-                      textOverflow: 'ellipsis',
-                      whiteSpace: 'nowrap',
-                    }}
-                  >
-                    {s.title}
-                  </div>
-                  <div
-                    style={{
-                      fontSize: 11,
-                      color: 'var(--ph-text-tertiary)',
-                      marginTop: 2,
-                    }}
-                  >
-                    {s.messageCount} 条消息
-                  </div>
+                  <span className="ph-chat-session-title">{s.title}</span>
+                  <span className="ph-chat-session-meta">
+                    {s.messageCount} · {formatTime(s.updatedAt ?? s.createdAt)}
+                  </span>
                 </div>
               </Dropdown>
             ))
@@ -269,228 +270,269 @@ export default function ChatPage() {
         </div>
       </div>
 
-      {/* ── Main chat area ── */}
-      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
-        {/* Chat header */}
+      {/* ── Conversation column ── */}
+      <div
+        style={{
+          flex: 1,
+          minWidth: 0,
+          display: 'flex',
+          flexDirection: 'column',
+          background: 'var(--ph-bg-base)',
+        }}
+      >
+        {/* Header */}
         <div
           style={{
-            padding: '14px 24px',
+            height: 52,
+            flexShrink: 0,
+            padding: '0 24px',
             borderBottom: '1px solid var(--ph-border-subtle)',
             display: 'flex',
             alignItems: 'center',
             gap: 10,
           }}
         >
-          <RobotOutlined style={{ fontSize: 18, color: 'var(--ph-accent)' }} />
-          <span style={{ fontWeight: 600, fontSize: 15 }}>
+          <RobotOutlined style={{ fontSize: 16, color: 'var(--ph-accent)' }} />
+          <span style={{ fontSize: 14, fontWeight: 600 }}>
             {currentSession?.title ?? t('chat.title')}
           </span>
-        </div>
-
-        {/* Messages */}
-        <div style={{ flex: 1, overflowY: 'auto', padding: '20px 24px' }}>
-          {msgsLoading ? (
-            <Spin style={{ display: 'block', margin: '60px auto' }} />
-          ) : messages.length === 0 && !isStreaming ? (
-            <div
+          {currentSession && (
+            <span
               style={{
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center',
-                justifyContent: 'center',
-                height: '60%',
-                gap: 12,
+                fontSize: 11,
+                color: 'var(--ph-text-tertiary)',
+                fontFamily: 'var(--ph-font-mono)',
+                marginLeft: 'auto',
               }}
             >
-              <RobotOutlined
-                style={{ fontSize: 48, color: 'var(--ph-text-tertiary)', opacity: 0.4 }}
-              />
-              <Text style={{ color: 'var(--ph-text-tertiary)', fontSize: 13 }}>
-                {t('retrieval.emptyIdle')}
-              </Text>
-            </div>
-          ) : (
-            <>
-              {messages.map((msg) => (
-                <div
-                  key={msg.id}
-                  style={{
-                    marginBottom: 20,
-                    display: 'flex',
-                    flexDirection: 'column',
-                    alignItems: msg.role === 'user' ? 'flex-end' : 'flex-start',
-                  }}
-                >
-                  <div
-                    style={{
-                      maxWidth: '72%',
-                      padding: '10px 14px',
-                      borderRadius:
-                        msg.role === 'user' ? '12px 12px 4px 12px' : '12px 12px 12px 4px',
-                      background:
-                        msg.role === 'user' ? 'var(--ph-accent)' : 'var(--ph-bg-elevated)',
-                      color: msg.role === 'user' ? '#fff' : 'var(--ph-text-primary)',
-                      fontSize: 14,
-                      lineHeight: 1.6,
-                      border: '1px solid var(--ph-border-subtle)',
-                      wordBreak: 'break-word',
-                    }}
-                  >
-                    {msg.content}
-                  </div>
-
-                  {/* Citations */}
-                  {msg.role === 'assistant' && msg.citations && msg.citations.length > 0 && (
-                    <div
-                      style={{
-                        marginTop: 8,
-                        maxWidth: '72%',
-                        padding: '8px 12px',
-                        background: 'var(--ph-bg-elevated)',
-                        border: '1px solid var(--ph-border-subtle)',
-                        borderRadius: 'var(--ph-radius-small)',
-                        fontSize: 12,
-                      }}
-                    >
-                      <Text
-                        style={{
-                          fontSize: 11,
-                          color: 'var(--ph-text-tertiary)',
-                          fontFamily: 'var(--ph-font-mono)',
-                          marginBottom: 6,
-                          display: 'block',
-                        }}
-                      >
-                        {t('chat.citations')}
-                      </Text>
-                      {msg.citations.map((c, i) => (
-                        <div key={i} style={{ marginBottom: 4 }}>
-                          <Tag style={{ fontSize: 11, marginRight: 6 }}>
-                            {c.documentName ?? c.documentId}
-                            {c.pageNumber != null ? ` p.${c.pageNumber}` : ''}
-                          </Tag>
-                          <Text
-                            style={{ fontSize: 11, color: 'var(--ph-text-secondary)' }}
-                            ellipsis={{ tooltip: c.content }}
-                          >
-                            {c.content.slice(0, 80)}…
-                          </Text>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-
-                  <Text
-                    style={{
-                      fontSize: 11,
-                      color: 'var(--ph-text-tertiary)',
-                      marginTop: 4,
-                    }}
-                  >
-                    {new Date(msg.createdAt).toLocaleTimeString()}
-                  </Text>
-                </div>
-              ))}
-
-              {/* Streaming assistant response */}
-              {isStreaming && streamingContent && (
-                <div
-                  style={{
-                    marginBottom: 20,
-                    padding: '10px 14px',
-                    maxWidth: '72%',
-                    borderRadius: '12px 12px 12px 4px',
-                    background: 'var(--ph-bg-elevated)',
-                    border: '1px solid var(--ph-border-subtle)',
-                    fontSize: 14,
-                    lineHeight: 1.6,
-                    color: 'var(--ph-text-primary)',
-                  }}
-                >
-                  {streamingContent}
-                  <span
-                    style={{
-                      display: 'inline-block',
-                      width: 6,
-                      height: 14,
-                      background: 'var(--ph-accent)',
-                      marginLeft: 2,
-                      borderRadius: 2,
-                      verticalAlign: 'text-bottom',
-                      animation: 'ph-blink 1s step-end infinite',
-                    }}
-                  />
-                </div>
-              )}
-
-              {isStreaming && !streamingContent && (
-                <div style={{ marginBottom: 20 }}>
-                  <Text
-                    style={{ fontSize: 12, color: 'var(--ph-text-tertiary)', fontStyle: 'italic' }}
-                  >
-                    {t('chat.thinking')}
-                  </Text>
-                </div>
-              )}
-
-              <div ref={bottomRef} />
-            </>
+              {currentSession.messageCount}
+            </span>
           )}
         </div>
 
-        {/* Composer */}
-        <div
-          style={{
-            padding: '12px 20px 16px',
-            borderTop: '1px solid var(--ph-border-subtle)',
-          }}
-        >
-          <div
-            style={{
-              display: 'flex',
-              gap: 8,
-              alignItems: 'flex-end',
-              background: 'var(--ph-bg-surface)',
-              border: '1px solid var(--ph-border-default)',
-              borderRadius: 'var(--ph-radius)',
-              padding: '8px 12px',
-            }}
-          >
-            <textarea
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter' && !e.shiftKey) {
-                  e.preventDefault();
-                  handleSend();
-                }
-              }}
-              placeholder={t('chat.placeholder')}
-              rows={1}
-              style={{
-                flex: 1,
-                resize: 'none',
-                border: 'none',
-                outline: 'none',
-                background: 'transparent',
-                color: 'var(--ph-text-primary)',
-                fontSize: 14,
-                lineHeight: 1.6,
-                fontFamily: 'inherit',
-                overflowY: 'hidden',
-                minHeight: 24,
-                maxHeight: 120,
-              }}
-            />
-            <Button
-              type="primary"
-              icon={<SendOutlined />}
-              onClick={handleSend}
-              disabled={!input.trim() || isStreaming}
-              loading={isStreaming}
-            />
+        {/* Messages */}
+        <div style={{ flex: 1, overflowY: 'auto' }}>
+          <div style={{ maxWidth: COLUMN_WIDTH, margin: '0 auto', padding: '24px 24px 12px' }}>
+            {msgsLoading ? (
+              <Spin style={{ display: 'block', margin: '60px auto' }} />
+            ) : messages.length === 0 && !isStreaming ? (
+              /* Empty state */
+              <div
+                style={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: 14,
+                  paddingTop: '14vh',
+                }}
+              >
+                <div
+                  style={{
+                    width: 64,
+                    height: 64,
+                    borderRadius: '50%',
+                    background: 'var(--ph-accent-dim)',
+                    border: '1px solid var(--ph-accent-deep)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                  }}
+                >
+                  <RobotOutlined style={{ fontSize: 28, color: 'var(--ph-accent)' }} />
+                </div>
+                <div style={{ fontSize: 15, fontWeight: 600 }}>{t('chat.emptyTitle')}</div>
+                <Text
+                  style={{ fontSize: 12, color: 'var(--ph-text-tertiary)', textAlign: 'center' }}
+                >
+                  {t('chat.placeholder')}
+                </Text>
+              </div>
+            ) : (
+              <>
+                {messages.map((msg) => (
+                  <MessageBubble key={msg.id} msg={msg} />
+                ))}
+
+                {/* Streaming assistant response */}
+                {isStreaming &&
+                  (streamingContent ? (
+                    <div style={{ display: 'flex', gap: 10, marginBottom: 20 }}>
+                      <AvatarBadge role="assistant" />
+                      <div style={{ minWidth: 0 }}>
+                        <div
+                          className="ph-bubble ph-bubble-assistant"
+                          style={{ display: 'inline-block' }}
+                        >
+                          {streamingContent}
+                          <span className="ph-caret" />
+                        </div>
+                      </div>
+                    </div>
+                  ) : (
+                    <div style={{ display: 'flex', gap: 10, marginBottom: 20 }}>
+                      <AvatarBadge role="assistant" />
+                      <div style={{ paddingTop: 6 }}>
+                        <Text
+                          style={{
+                            fontSize: 12,
+                            color: 'var(--ph-text-tertiary)',
+                            fontStyle: 'italic',
+                          }}
+                        >
+                          {t('chat.thinking')}
+                        </Text>
+                      </div>
+                    </div>
+                  ))}
+
+                <div ref={bottomRef} />
+              </>
+            )}
           </div>
         </div>
+
+        {/* Composer */}
+        <div style={{ flexShrink: 0, padding: '12px 24px 18px' }}>
+          <div style={{ maxWidth: COLUMN_WIDTH, margin: '0 auto' }}>
+            <div className="ph-chat-composer">
+              <textarea
+                value={input}
+                onChange={(e) => setInput(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' && !e.shiftKey && !e.nativeEvent.isComposing) {
+                    e.preventDefault();
+                    void handleSend();
+                  }
+                }}
+                placeholder={t('chat.placeholder')}
+                rows={1}
+              />
+              <button
+                type="button"
+                className="ph-chat-send"
+                disabled={!input.trim() || isStreaming}
+                onClick={() => void handleSend()}
+                aria-label={t('chat.ask')}
+              >
+                <SendOutlined />
+              </button>
+            </div>
+            <div
+              style={{
+                textAlign: 'center',
+                fontSize: 11,
+                color: 'var(--ph-text-tertiary)',
+                marginTop: 8,
+              }}
+            >
+              {t('chat.sendHint')}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/** Round avatar badge for one side of the conversation. */
+function AvatarBadge({ role }: { role: 'user' | 'assistant' }) {
+  return role === 'user' ? (
+    <div
+      style={{
+        width: 28,
+        height: 28,
+        borderRadius: '50%',
+        background: 'var(--ph-bg-elevated)',
+        border: '1px solid var(--ph-border-default)',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        flexShrink: 0,
+      }}
+    >
+      <UserOutlined style={{ fontSize: 13, color: 'var(--ph-text-secondary)' }} />
+    </div>
+  ) : (
+    <div
+      style={{
+        width: 28,
+        height: 28,
+        borderRadius: '50%',
+        background: 'var(--ph-accent-dim)',
+        border: '1px solid var(--ph-accent-deep)',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        flexShrink: 0,
+      }}
+    >
+      <RobotOutlined style={{ fontSize: 13, color: 'var(--ph-accent)' }} />
+    </div>
+  );
+}
+
+/** One message row: avatar + bubble + optional citation chips. */
+function MessageBubble({ msg }: { msg: ChatMessage }) {
+  const isUser = msg.role === 'user';
+  return (
+    <div
+      style={{
+        display: 'flex',
+        gap: 10,
+        marginBottom: 20,
+        flexDirection: isUser ? 'row-reverse' : 'row',
+      }}
+    >
+      <AvatarBadge role={msg.role} />
+      <div
+        style={{
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: isUser ? 'flex-end' : 'flex-start',
+          maxWidth: '82%',
+          minWidth: 0,
+        }}
+      >
+        <div
+          className={isUser ? 'ph-bubble ph-bubble-user' : 'ph-bubble ph-bubble-assistant'}
+          style={{ whiteSpace: 'pre-wrap' }}
+        >
+          {msg.content}
+        </div>
+
+        {/* Citations */}
+        {!isUser && msg.citations && msg.citations.length > 0 && (
+          <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginTop: 8 }}>
+            {msg.citations.slice(0, 6).map((c, i) => (
+              <span key={i} className="ph-chat-citation">
+                <span className="ph-chat-citation-index">{i + 1}</span>
+                <span
+                  style={{
+                    maxWidth: 200,
+                    whiteSpace: 'nowrap',
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
+                  }}
+                >
+                  {c.documentName ?? c.documentId}
+                  {c.pageNumber != null ? ` · p.${c.pageNumber}` : ''}
+                </span>
+              </span>
+            ))}
+          </div>
+        )}
+
+        <span
+          style={{
+            fontSize: 11,
+            color: 'var(--ph-text-tertiary)',
+            marginTop: 4,
+            fontFamily: 'var(--ph-font-mono)',
+          }}
+        >
+          {formatTime(msg.createdAt)}
+        </span>
       </div>
     </div>
   );

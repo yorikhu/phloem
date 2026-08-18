@@ -59,7 +59,7 @@ export default function AppSider({
       (item) =>
         location.pathname === item.key ||
         (item.key !== '/' && location.pathname.startsWith(item.key)),
-    )?.key ?? '/';
+    )?.key ?? '';
 
   return (
     <Sider

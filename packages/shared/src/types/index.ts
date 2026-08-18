@@ -198,3 +198,72 @@ export interface PaginationParams {
   page?: number;
   pageSize?: number;
 }
+
+// ── Team (F5.4) ──
+
+export type MemberRole = 'owner' | 'admin' | 'member' | 'readonly';
+export type MemberStatus = 'active' | 'invited' | 'suspended';
+
+export interface TeamMember {
+  id: string;
+  name: string;
+  email: string;
+  role: MemberRole;
+  status: MemberStatus;
+  avatarUrl?: string;
+  joinedAt: string;
+}
+
+export interface TeamInvite {
+  email: string;
+  role: Exclude<MemberRole, 'owner'>;
+}
+
+// ── MCP Server (F4.4) ──
+
+export type McpTransport = 'sse' | 'streamable_http' | 'stdio';
+export type McpStatus = 'connected' | 'disconnected' | 'error';
+
+export interface McpServer {
+  id: string;
+  name: string;
+  transport: McpTransport;
+  url: string;
+  enabled: boolean;
+  status: McpStatus;
+  toolCount: number;
+  createdAt: string;
+}
+
+// ── Data Source connection (F8.2) ──
+
+export type SourceType = 's3' | 'webdav' | 'notion' | 'github' | 'rss';
+export type SourceStatus = 'connected' | 'error' | 'disabled';
+export type SourceAuthType = 'none' | 'token' | 'basic';
+
+export interface DataSourceConnection {
+  id: string;
+  name: string;
+  type: SourceType;
+  endpoint: string;
+  authType: SourceAuthType;
+  status: SourceStatus;
+  documentCount: number;
+  lastSyncAt?: string;
+  createdAt: string;
+}
+
+// ── Chat channel (F8.3) ──
+
+export type ChannelType = 'webchat' | 'wechat' | 'dingtalk' | 'feishu' | 'api';
+
+export interface ChatChannel {
+  id: string;
+  name: string;
+  type: ChannelType;
+  webhookUrl?: string;
+  boundDatasetIds: string[];
+  enabled: boolean;
+  messageCount: number;
+  createdAt: string;
+}

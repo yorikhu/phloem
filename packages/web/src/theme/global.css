@@ -233,3 +233,171 @@ body {
 .ant-table-wrapper {
   background: transparent;
 }
+
+/* ── Chat page ── */
+
+/* Message bubbles */
+.ph-bubble {
+  padding: 10px 14px;
+  font-size: 14px;
+  line-height: 1.6;
+  word-break: break-word;
+  border-radius: 12px;
+}
+
+.ph-bubble-user {
+  background: var(--ph-accent);
+  color: #fff;
+  border-bottom-right-radius: 4px;
+}
+
+.ph-bubble-assistant {
+  background: var(--ph-bg-surface);
+  border: 1px solid var(--ph-border-subtle);
+  color: var(--ph-text-primary);
+  border-bottom-left-radius: 4px;
+}
+
+/* Streaming caret */
+@keyframes ph-blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
+}
+
+.ph-caret {
+  display: inline-block;
+  width: 7px;
+  height: 14px;
+  background: var(--ph-accent);
+  margin-left: 3px;
+  border-radius: 2px;
+  vertical-align: text-bottom;
+  animation: ph-blink 1s step-end infinite;
+}
+
+/* Session list item */
+.ph-chat-session {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 9px 12px;
+  margin-bottom: 2px;
+  border-radius: var(--ph-radius-lg);
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: background var(--ph-transition-fast), border-color var(--ph-transition-fast);
+}
+
+.ph-chat-session:hover {
+  background: var(--ph-bg-hover);
+}
+
+.ph-chat-session.active {
+  background: var(--ph-accent-dim);
+  border-color: var(--ph-accent-deep);
+}
+
+.ph-chat-session-title {
+  font-size: 13px;
+  color: var(--ph-text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.ph-chat-session.active .ph-chat-session-title {
+  color: var(--ph-accent-light);
+  font-weight: 500;
+}
+
+.ph-chat-session-meta {
+  font-size: 11px;
+  color: var(--ph-text-tertiary);
+  font-family: var(--ph-font-mono);
+}
+
+/* Composer card */
+.ph-chat-composer {
+  display: flex;
+  align-items: flex-end;
+  gap: 8px;
+  padding: 10px 12px;
+  background: var(--ph-bg-surface);
+  border: 1px solid var(--ph-border-default);
+  border-radius: 12px;
+  transition: border-color var(--ph-transition-fast), box-shadow var(--ph-transition-fast);
+}
+
+.ph-chat-composer:focus-within {
+  border-color: var(--ph-accent);
+  box-shadow: 0 0 0 3px var(--ph-accent-dim);
+}
+
+.ph-chat-composer textarea {
+  flex: 1;
+  resize: none;
+  border: none;
+  outline: none;
+  background: transparent;
+  color: var(--ph-text-primary);
+  font-size: 14px;
+  line-height: 1.6;
+  font-family: inherit;
+  overflow-y: auto;
+  min-height: 24px;
+  max-height: 140px;
+}
+
+.ph-chat-send {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: none;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--ph-accent);
+  color: #fff;
+  font-size: 15px;
+  transition: background var(--ph-transition-fast), opacity var(--ph-transition-fast);
+  flex-shrink: 0;
+}
+
+.ph-chat-send:hover:not(:disabled) {
+  background: var(--ph-accent-hover);
+}
+
+.ph-chat-send:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+/* Citation chip */
+.ph-chat-citation {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  max-width: 100%;
+  padding: 4px 10px;
+  border-radius: 999px;
+  border: 1px solid var(--ph-border-default);
+  background: var(--ph-bg-surface);
+  font-size: 11px;
+  color: var(--ph-text-secondary);
+  cursor: default;
+}
+
+.ph-chat-citation-index {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--ph-accent-dim);
+  color: var(--ph-accent);
+  font-size: 10px;
+  font-family: var(--ph-font-mono);
+  flex-shrink: 0;
+}

@@ -28,6 +28,10 @@ import { providers } from './modules/provider.js';
 import { account } from './modules/account.js';
 import { chat } from './modules/chat.js';
 import { chunks } from './modules/chunk.js';
+import { team } from './modules/team.js';
+import { mcp } from './modules/mcp.js';
+import { sources } from './modules/sources.js';
+import { channels } from './modules/channels.js';
 
 export const api = {
   common: commonApi,
@@ -39,4 +43,8 @@ export const api = {
   account,
   chat,
   chunks,
+  team,
+  mcp,
+  sources,
+  channels,
 };

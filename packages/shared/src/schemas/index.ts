@@ -186,3 +186,60 @@ export const chunkRebuildOptionsSchema = z.object({
   chunkSize: z.number().int().min(64).max(2048).optional(),
   delimiter: z.string().optional(),
 });
+
+// ── Team (F5.4) ──
+
+export const teamMemberSchema = z.object({
+  id: z.string(),
+  name: z.string(),
+  email: z.string().email(),
+  role: z.enum(['owner', 'admin', 'member', 'readonly']),
+  status: z.enum(['active', 'invited', 'suspended']),
+  avatarUrl: z.string().optional(),
+  joinedAt: z.string().datetime(),
+});
+
+export const teamInviteSchema = z.object({
+  email: z.string().email(),
+  role: z.enum(['admin', 'member', 'readonly']),
+});
+
+// ── MCP Server (F4.4) ──
+
+export const mcpServerSchema = z.object({
+  id: z.string(),
+  name: z.string(),
+  transport: z.enum(['sse', 'streamable_http', 'stdio']),
+  url: z.string(),
+  enabled: z.boolean(),
+  status: z.enum(['connected', 'disconnected', 'error']),
+  toolCount: z.number().int().nonnegative(),
+  createdAt: z.string().datetime(),
+});
+
+// ── Data Source connection (F8.2) ──
+
+export const dataSourceConnectionSchema = z.object({
+  id: z.string(),
+  name: z.string(),
+  type: z.enum(['s3', 'webdav', 'notion', 'github', 'rss']),
+  endpoint: z.string(),
+  authType: z.enum(['none', 'token', 'basic']),
+  status: z.enum(['connected', 'error', 'disabled']),
+  documentCount: z.number().int().nonnegative(),
+  lastSyncAt: z.string().datetime().optional(),
+  createdAt: z.string().datetime(),
+});
+
+// ── Chat channel (F8.3) ──
+
+export const chatChannelSchema = z.object({
+  id: z.string(),
+  name: z.string(),
+  type: z.enum(['webchat', 'wechat', 'dingtalk', 'feishu', 'api']),
+  webhookUrl: z.string().optional(),
+  boundDatasetIds: z.array(z.string()),
+  enabled: z.boolean(),
+  messageCount: z.number().int().nonnegative(),
+  createdAt: z.string().datetime(),
+});
