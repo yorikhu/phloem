@@ -18,7 +18,7 @@ import {
   ArrowRightOutlined,
   EnterOutlined,
 } from '@ant-design/icons';
-import { api } from '../api/client.js';
+import { api } from '../api/index.js';
 import { useI18n } from '../i18n/index.js';
 import { formatCombo, useHotkeys } from '../hotkeys/index.js';
 import type { Dataset, Document } from '@phloem/shared';
@@ -58,7 +58,7 @@ export default function CommandPalette({ open, onClose }: { open: boolean; onClo
   // ── Data (from react-query cache, already fetched by pages) ──
   const { data: datasetsData } = useQuery({
     queryKey: ['datasets'],
-    queryFn: () => api.listDatasets(),
+    queryFn: () => api.datasets.list(),
     enabled: open,
     staleTime: 30_000,
   });
@@ -68,7 +68,7 @@ export default function CommandPalette({ open, onClose }: { open: boolean; onClo
     queryKey: ['all-documents'],
     queryFn: async () => {
       const results = await Promise.all(
-        datasets.map((d) => api.listDocuments(d.id).then((r) => r.data)),
+        datasets.map((d) => api.documents.list(d.id).then((r) => r.data)),
       );
       return results.flat();
     },

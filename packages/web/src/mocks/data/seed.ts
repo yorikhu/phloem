@@ -1,5 +1,7 @@
 /**
- * Mock data for MSW handlers — simulates a populated knowledge base.
+ * Seed fixtures for the mock backend — a populated knowledge base.
+ *
+ * Pure data, no mutation. Handlers mutate the copies in `store.ts`.
  */
 
 import type { Dataset, Document, RetrievalChunk, CurrentUser } from '@phloem/shared';
@@ -8,14 +10,14 @@ const now = new Date().toISOString();
 const dayAgo = new Date(Date.now() - 86400000).toISOString();
 const weekAgo = new Date(Date.now() - 604800000).toISOString();
 
-export const mockCurrentUser: CurrentUser = {
+export const seedCurrentUser: CurrentUser = {
   id: 'user-001',
   name: 'You You',
   email: 'you@phloem.dev',
   role: 'owner',
 };
 
-export const mockDatasets: Dataset[] = [
+export const seedDatasets: Dataset[] = [
   {
     id: 'ds-001',
     name: 'Product Documentation',
@@ -48,7 +50,7 @@ export const mockDatasets: Dataset[] = [
   },
 ];
 
-export const mockDocuments: Record<string, Document[]> = {
+export const seedDocuments: Record<string, Document[]> = {
   'ds-001': [
     {
       id: 'doc-001',
@@ -99,7 +101,7 @@ export const mockDocuments: Record<string, Document[]> = {
   'ds-003': [],
 };
 
-export const mockRetrievalResults: RetrievalChunk[] = [
+export const seedRetrievalResults: RetrievalChunk[] = [
   {
     content:
       "Phloem is an open-source, self-hosted knowledge base platform built on top of RAGFlow's deep document parsing and hybrid retrieval engine.",

@@ -22,7 +22,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import PixelSprout from './PixelSprout';
 import UserAvatar from './UserAvatar';
-import { api } from '../api/client.js';
+import { api } from '../api/index.js';
 import { useI18n } from '../i18n/index.js';
 import { formatCombo, useHotkeys } from '../hotkeys/index.js';
 
@@ -43,7 +43,7 @@ export default function AppSider({
 
   const { data: user } = useQuery({
     queryKey: ['me'],
-    queryFn: () => api.me(),
+    queryFn: () => api.user.me(),
     staleTime: 5 * 60_000,
   });
 

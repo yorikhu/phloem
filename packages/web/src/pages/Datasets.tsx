@@ -20,7 +20,7 @@ import {
 import { PlusOutlined, DatabaseOutlined, DeleteOutlined, SearchOutlined } from '@ant-design/icons';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
-import { api } from '../api/client.js';
+import { api } from '../api/index.js';
 import { useI18n } from '../i18n/index.js';
 
 const { Text } = Typography;
@@ -35,11 +35,11 @@ export default function DatasetsPage() {
 
   const { data, isLoading } = useQuery({
     queryKey: ['datasets'],
-    queryFn: () => api.listDatasets(),
+    queryFn: () => api.datasets.list(),
   });
 
   const createMutation = useMutation({
-    mutationFn: api.createDataset,
+    mutationFn: api.datasets.create,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['datasets'] });
       setModalOpen(false);
@@ -48,7 +48,7 @@ export default function DatasetsPage() {
   });
 
   const deleteMutation = useMutation({
-    mutationFn: api.deleteDataset,
+    mutationFn: api.datasets.remove,
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['datasets'] }),
   });
 

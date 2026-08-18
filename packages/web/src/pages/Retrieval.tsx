@@ -10,7 +10,7 @@ import { Input, Button, Select, Spin, Empty, Typography, Tag } from 'antd';
 import { SearchOutlined } from '@ant-design/icons';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { useSearchParams } from 'react-router-dom';
-import { api } from '../api/client.js';
+import { api } from '../api/index.js';
 import { useI18n } from '../i18n/index.js';
 import type { RetrievalChunk } from '@phloem/shared';
 
@@ -26,14 +26,14 @@ export default function RetrievalPage() {
 
   const { data: datasetsData } = useQuery({
     queryKey: ['datasets'],
-    queryFn: () => api.listDatasets(),
+    queryFn: () => api.datasets.list(),
   });
 
   const datasets = datasetsData?.data ?? [];
 
   const retrieveMutation = useMutation({
     mutationFn: (q: string) =>
-      api.retrieve({
+      api.retrieval.retrieve({
         question: q,
         datasetIds: selectedDatasets.length > 0 ? selectedDatasets : datasets.map((d) => d.id),
         topK: 10,

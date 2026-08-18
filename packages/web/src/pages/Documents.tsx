@@ -21,7 +21,7 @@ import { DeleteOutlined, InboxOutlined } from '@ant-design/icons';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useSearchParams } from 'react-router-dom';
 import type { Document, DocumentStatus } from '@phloem/shared';
-import { api } from '../api/client.js';
+import { api } from '../api/index.js';
 import { useI18n } from '../i18n/index.js';
 
 const { Text } = Typography;
@@ -50,19 +50,19 @@ export default function DocumentsPage() {
 
   const { data: datasetsData } = useQuery({
     queryKey: ['datasets'],
-    queryFn: () => api.listDatasets(),
+    queryFn: () => api.datasets.list(),
   });
 
   const datasets = datasetsData?.data ?? [];
 
   const { data, isLoading } = useQuery({
     queryKey: ['documents', datasetId],
-    queryFn: () => api.listDocuments(datasetId),
+    queryFn: () => api.documents.list(datasetId),
     enabled: !!datasetId,
   });
 
   const uploadMutation = useMutation({
-    mutationFn: ({ file }: { file: File }) => api.uploadDocument(datasetId, file),
+    mutationFn: ({ file }: { file: File }) => api.documents.upload(datasetId, file),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['documents', datasetId] });
       queryClient.invalidateQueries({ queryKey: ['datasets'] });
@@ -72,7 +72,7 @@ export default function DocumentsPage() {
   });
 
   const deleteMutation = useMutation({
-    mutationFn: (docId: string) => api.deleteDocument(datasetId, docId),
+    mutationFn: (docId: string) => api.documents.remove(datasetId, docId),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['documents', datasetId] });
       queryClient.invalidateQueries({ queryKey: ['datasets'] });
