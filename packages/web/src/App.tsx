@@ -1,17 +1,17 @@
-import { Routes, Route, Link } from 'react-router-dom';
+import { Routes, Route } from 'react-router-dom';
+import AppLayout from './components/AppLayout.js';
+import DatasetsPage from './pages/Datasets.js';
+import DocumentsPage from './pages/Documents.js';
+import RetrievalPage from './pages/Retrieval.js';
 
 export default function App() {
   return (
-    <div style={{ padding: '24px' }}>
-      <nav style={{ marginBottom: '24px' }}>
-        <Link to="/">Datasets</Link> | <Link to="/documents">Documents</Link> |{' '}
-        <Link to="/retrieval">Retrieval</Link>
-      </nav>
+    <AppLayout>
       <Routes>
-        <Route path="/" element={<div>Datasets Page (scaffold)</div>} />
-        <Route path="/documents" element={<div>Documents Page (scaffold)</div>} />
-        <Route path="/retrieval" element={<div>Retrieval Page (scaffold)</div>} />
+        <Route path="/" element={<DatasetsPage />} />
+        <Route path="/documents" element={<DocumentsPage />} />
+        <Route path="/retrieval" element={<RetrievalPage />} />
       </Routes>
-    </div>
+    </AppLayout>
   );
 }

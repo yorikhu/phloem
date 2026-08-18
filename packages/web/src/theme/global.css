@@ -1,0 +1,92 @@
+/* ── Codex-inspired global styles ── */
+
+:root {
+  --ph-bg-base: #0d0d0d;
+  --ph-bg-surface: #161616;
+  --ph-bg-elevated: #1e1e1e;
+  --ph-bg-hover: #262626;
+  --ph-border-subtle: #2a2a2a;
+  --ph-border-default: #333333;
+  --ph-border-strong: #404040;
+  --ph-text-primary: #e8e8e8;
+  --ph-text-secondary: #a0a0a0;
+  --ph-text-tertiary: #666666;
+  --ph-accent: #6b8cff;
+  --ph-accent-hover: #8aa3ff;
+  --ph-accent-dim: rgba(107, 140, 255, 0.12);
+  --ph-success: #5ec891;
+  --ph-warning: #e8a838;
+  --ph-error: #e85a5a;
+  --ph-font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", "Helvetica Neue", sans-serif;
+  --ph-font-mono: "SF Mono", "JetBrains Mono", "Fira Code", "Cascadia Code", monospace;
+  --ph-sidebar-width: 220px;
+  --ph-content-max-width: 960px;
+  --ph-radius: 6px;
+  --ph-radius-small: 4px;
+  --ph-transition-fast: 120ms ease;
+  --ph-transition: 200ms ease;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html, body, #root {
+  height: 100%;
+  width: 100%;
+}
+
+body {
+  background-color: var(--ph-bg-base);
+  color: var(--ph-text-primary);
+  font-family: var(--ph-font-sans);
+  font-size: 14px;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* ── Scrollbar ── */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--ph-border-default);
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--ph-border-strong);
+}
+
+/* ── Selection ── */
+::selection {
+  background: var(--ph-accent-dim);
+  color: var(--ph-text-primary);
+}
+
+/* ── Monospace utility ── */
+.mono {
+  font-family: var(--ph-font-mono);
+}
+
+/* ── AntD overrides (deep) ── */
+.ant-btn-primary {
+  box-shadow: none;
+}
+
+.ant-card {
+  transition: border-color var(--ph-transition-fast);
+}
+
+.ant-table-wrapper {
+  background: transparent;
+}
