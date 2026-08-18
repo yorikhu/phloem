@@ -10,6 +10,10 @@ import { userHandlers } from './user.js';
 import { datasetHandlers } from './dataset.js';
 import { documentHandlers } from './document.js';
 import { retrievalHandlers } from './retrieval.js';
+import { providerHandlers } from './provider.js';
+import { accountHandlers } from './account.js';
+import { chatHandlers } from './chat.js';
+import { chunkHandlers } from './chunk.js';
 
 export const handlers = [
   ...commonHandlers,
@@ -17,4 +21,8 @@ export const handlers = [
   ...datasetHandlers,
   ...documentHandlers,
   ...retrievalHandlers,
+  ...providerHandlers,
+  ...accountHandlers,
+  ...chatHandlers,
+  ...chunkHandlers,
 ];

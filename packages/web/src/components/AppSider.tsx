@@ -18,6 +18,9 @@ import {
   SettingOutlined,
   LogoutOutlined,
   QuestionCircleOutlined,
+  MessageOutlined,
+  UserOutlined,
+  CloudServerOutlined,
 } from '@ant-design/icons';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
@@ -168,7 +171,14 @@ export default function AppSider({
             trigger={['click']}
             placement="topRight"
             menu={{
-              items: dropdownItems(t, onOpenSettings, user?.name, user?.email),
+              items: dropdownItems(
+                t,
+                onOpenSettings,
+                () => navigate('/settings/account'),
+                () => navigate('/settings/models'),
+                user?.name,
+                user?.email,
+              ),
             }}
           >
             <div style={{ cursor: 'pointer', padding: 4, borderRadius: 6 }}>
@@ -180,7 +190,16 @@ export default function AppSider({
             <Dropdown
               trigger={['click']}
               placement="topLeft"
-              menu={{ items: dropdownItems(t, onOpenSettings, user?.name, user?.email) }}
+              menu={{
+                items: dropdownItems(
+                  t,
+                  onOpenSettings,
+                  () => navigate('/settings/account'),
+                  () => navigate('/settings/models'),
+                  user?.name,
+                  user?.email,
+                ),
+              }}
             >
               {/* Account row — hover paints the row background */}
               <div
@@ -270,12 +289,15 @@ function menuItems(t: (key: never) => string) {
     { key: '/', icon: <DatabaseOutlined />, label: t('nav.datasets' as never) },
     { key: '/documents', icon: <FileTextOutlined />, label: t('nav.documents' as never) },
     { key: '/retrieval', icon: <SearchOutlined />, label: t('nav.retrieval' as never) },
+    { key: '/chat', icon: <MessageOutlined />, label: t('nav.chat' as never) },
   ];
 }
 
 function dropdownItems(
   t: ReturnType<typeof useI18n>['t'],
   onSettings: () => void,
+  onAccount: () => void,
+  onModels: () => void,
   name?: string,
   email?: string,
 ) {
@@ -293,6 +315,18 @@ function dropdownItems(
       disabled: true,
     },
     { type: 'divider' as const },
+    {
+      key: 'account',
+      icon: <UserOutlined />,
+      label: t('user.accountSettings'),
+      onClick: onAccount,
+    },
+    {
+      key: 'models',
+      icon: <CloudServerOutlined />,
+      label: t('user.modelSettings'),
+      onClick: onModels,
+    },
     {
       key: 'settings',
       icon: <SettingOutlined />,

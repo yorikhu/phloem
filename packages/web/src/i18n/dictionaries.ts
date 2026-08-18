@@ -9,6 +9,7 @@ export const en = {
   // ── Common ──
   'common.cancel': 'Cancel',
   'common.create': 'Create',
+  'common.edit': 'Edit',
   'common.delete': 'Delete',
   'common.settings': 'Settings',
   'common.save': 'Save',
@@ -21,6 +22,7 @@ export const en = {
   'nav.datasets': 'Datasets',
   'nav.documents': 'Documents',
   'nav.retrieval': 'Retrieval',
+  'nav.chat': 'Chat',
 
   // ── Sidebar ──
   'sidebar.search': 'Search',
@@ -29,6 +31,8 @@ export const en = {
 
   // ── User ──
   'user.settings': 'Settings',
+  'user.accountSettings': 'Account settings',
+  'user.modelSettings': 'Model providers',
   'user.signOut': 'Sign out',
 
   // ── Settings modal ──
@@ -45,6 +49,45 @@ export const en = {
   'settings.hotkeyNewline': 'New line (composer)',
   'settings.hotkeyNavigate': 'Navigate results',
   'settings.draftHint': 'Changes apply only after you save.',
+  // ── Settings > Models ──
+  'settings.models.title': 'Model Configuration',
+  'settings.models.subtitle': 'Configure LLM Providers, OpenAI-compatible interfaces supported',
+  'settings.models.add': 'Add Provider',
+  'settings.models.test': 'Test Connection',
+  'settings.models.testSuccess': 'Connected ({ms}ms)',
+  'settings.models.testFail': 'Connection failed: {error}',
+  'settings.models.setDefault': 'Set as Default',
+  'settings.models.defaultBadge': 'Default',
+  'settings.models.delete': 'Delete',
+  'settings.models.confirmDelete': 'Delete Provider "{name}"?',
+  'settings.models.providerName': 'Name',
+  'settings.models.providerType': 'Type',
+  'settings.models.baseUrl': 'Base URL',
+  'settings.models.apiKey': 'API Key',
+  'settings.models.models': 'Models',
+  'settings.models.defaultModel': 'Default Model',
+  'settings.models.cancel': 'Cancel',
+  'settings.models.save': 'Save',
+  // ── Settings > Account ──
+  'settings.account.title': 'Account',
+  'settings.account.name': 'Username',
+  'settings.account.email': 'Email',
+  'settings.account.role': 'Role',
+  'settings.account.avatar': 'Avatar',
+  'settings.account.saveSuccess': 'Account updated',
+  // ── Chat ──
+  'chat.title': 'Knowledge Q&A',
+  'chat.newSession': 'New Session',
+  'chat.sessions': 'Sessions',
+  'chat.emptySessions': 'No sessions yet',
+  'chat.deleteSession': 'Delete Session',
+  'chat.confirmDelete': 'Delete session "{title}"?',
+  'chat.renameSession': 'Rename Session',
+  'chat.placeholder': 'Ask a question, AI will answer based on the knowledge base...',
+  'chat.thinking': 'Thinking...',
+  'chat.citations': 'Sources',
+  'chat.ask': 'Send',
+  'chat.regenerate': 'Regenerate',
 
   // ── Command palette ──
   'palette.placeholder': 'Search datasets, documents, or ask anything...',
@@ -135,6 +178,7 @@ export const zh: Dict = {
   // ── Common ──
   'common.cancel': '取消',
   'common.create': '创建',
+  'common.edit': '编辑',
   'common.delete': '删除',
   'common.settings': '设置',
   'common.save': '保存',
@@ -147,6 +191,7 @@ export const zh: Dict = {
   'nav.datasets': '数据集',
   'nav.documents': '文档',
   'nav.retrieval': '检索',
+  'nav.chat': '对话',
 
   // ── Sidebar ──
   'sidebar.search': '搜索',
@@ -155,6 +200,8 @@ export const zh: Dict = {
 
   // ── User ──
   'user.settings': '设置',
+  'user.accountSettings': '账号设置',
+  'user.modelSettings': '模型配置',
   'user.signOut': '退出登录',
 
   // ── Settings modal ──
@@ -171,6 +218,45 @@ export const zh: Dict = {
   'settings.hotkeyNewline': '换行（检索输入框）',
   'settings.hotkeyNavigate': '结果导航',
   'settings.draftHint': '修改需保存后才会生效。',
+  // ── Settings > Models ──
+  'settings.models.title': '模型配置',
+  'settings.models.subtitle': '配置 LLM Provider，支持 OpenAI 兼容接口',
+  'settings.models.add': '新增 Provider',
+  'settings.models.test': '测试连接',
+  'settings.models.testSuccess': '连接成功（{ms}ms）',
+  'settings.models.testFail': '连接失败：{error}',
+  'settings.models.setDefault': '设为默认',
+  'settings.models.defaultBadge': '默认',
+  'settings.models.delete': '删除',
+  'settings.models.confirmDelete': '确认删除 Provider「{name}」？',
+  'settings.models.providerName': '名称',
+  'settings.models.providerType': '类型',
+  'settings.models.baseUrl': 'Base URL',
+  'settings.models.apiKey': 'API Key',
+  'settings.models.models': '模型列表',
+  'settings.models.defaultModel': '默认模型',
+  'settings.models.cancel': '取消',
+  'settings.models.save': '保存',
+  // ── Settings > Account ──
+  'settings.account.title': '个人资料',
+  'settings.account.name': '用户名',
+  'settings.account.email': '邮箱',
+  'settings.account.role': '角色',
+  'settings.account.avatar': '头像',
+  'settings.account.saveSuccess': '个人资料已更新',
+  // ── Chat ──
+  'chat.title': '知识问答',
+  'chat.newSession': '新建会话',
+  'chat.sessions': '会话列表',
+  'chat.emptySessions': '暂无会话记录',
+  'chat.deleteSession': '删除会话',
+  'chat.confirmDelete': '确认删除会话「{title}」？',
+  'chat.renameSession': '重命名会话',
+  'chat.placeholder': '输入问题，AI 将基于知识库回答...',
+  'chat.thinking': '思考中...',
+  'chat.citations': '引用来源',
+  'chat.ask': '发送',
+  'chat.regenerate': '重新生成',
 
   // ── Command palette ──
   'palette.placeholder': '搜索数据集、文档，或直接提问...',

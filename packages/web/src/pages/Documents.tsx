@@ -20,7 +20,7 @@ import {
 } from 'antd';
 import { DeleteOutlined, InboxOutlined } from '@ant-design/icons';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { useSearchParams } from 'react-router-dom';
+import { useSearchParams, useNavigate } from 'react-router-dom';
 import type { Document, DocumentStatus } from '@phloem/shared';
 import { api } from '../api/index.js';
 import { useI18n } from '../i18n/index.js';
@@ -45,6 +45,7 @@ function formatSize(bytes?: number): string {
 export default function DocumentsPage() {
   const { t } = useI18n();
   const [searchParams, setSearchParams] = useSearchParams();
+  const navigate = useNavigate();
   const queryClient = useQueryClient();
   const datasetId = searchParams.get('datasetId') ?? '';
   const [view, setView] = useState<'table' | 'upload'>('table');
@@ -99,7 +100,14 @@ export default function DocumentsPage() {
         dataIndex: 'name',
         key: 'name',
         ellipsis: true,
-        render: (name: string) => <span style={{ fontSize: 13 }}>{name}</span>,
+        render: (name: string, record: Document) => (
+          <a
+            onClick={() => navigate(`/documents/${record.id}`)}
+            style={{ fontSize: 13, color: 'var(--ph-text-primary)' }}
+          >
+            {name}
+          </a>
+        ),
       },
       {
         title: t('documents.colStatus'),

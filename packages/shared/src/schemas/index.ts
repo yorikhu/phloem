@@ -96,10 +96,93 @@ export const retrievalResponseSchema = z.object({
   results: z.array(retrievalChunkSchema),
 });
 
-// ── Error ──
+// ── LLM Provider (F8.1) ──
 
-export const apiErrorSchema = z.object({
-  code: z.string(),
-  message: z.string(),
-  details: z.record(z.unknown()).optional(),
+export const providerTypeSchema = z.enum([
+  'openai',
+  'openai_compatible',
+  'anthropic',
+  'gemini',
+  '自定义',
+]);
+
+export const llmProviderSchema = z.object({
+  id: z.string(),
+  name: z.string(),
+  type: providerTypeSchema,
+  baseUrl: z.string().url(),
+  apiKey: z.string(),
+  models: z.array(z.string()),
+  defaultModel: z.string().optional(),
+  enabled: z.boolean(),
+  isDefault: z.boolean(),
+  createdAt: z.string().datetime(),
+  updatedAt: z.string().datetime().optional(),
+});
+
+export const llmProviderCreateSchema = z.object({
+  name: z.string().min(1).max(64),
+  type: providerTypeSchema.default('openai_compatible'),
+  baseUrl: z.string().url(),
+  apiKey: z.string().min(1),
+  models: z.array(z.string()).min(1),
+  defaultModel: z.string().optional(),
+  enabled: z.boolean().default(true),
+  isDefault: z.boolean().default(false),
+});
+
+export const providerTestResultSchema = z.object({
+  ok: z.boolean(),
+  latencyMs: z.number().optional(),
+  error: z.string().optional(),
+  selectedModel: z.string().optional(),
+});
+
+// ── Chat / 问答 (F2.2, F2.4) ──
+
+export const chatMessageSchema = z.object({
+  id: z.string(),
+  sessionId: z.string(),
+  role: z.enum(['user', 'assistant']),
+  content: z.string(),
+  citations: z.array(retrievalChunkSchema).optional(),
+  createdAt: z.string().datetime(),
+});
+
+export const chatSessionSchema = z.object({
+  id: z.string(),
+  title: z.string(),
+  datasetIds: z.array(z.string()),
+  messageCount: z.number().int().nonnegative(),
+  createdAt: z.string().datetime(),
+  updatedAt: z.string().datetime().optional(),
+});
+
+export const chatStreamEventSchema = z.object({
+  type: z.enum(['delta', 'done', 'error']),
+  content: z.string().optional(),
+  citations: z.array(retrievalChunkSchema).optional(),
+  sessionId: z.string().optional(),
+});
+
+// ── Chunk / 文档详情 (F1.4, F1.5, F1.6) ──
+
+export const chunkSchema = z.object({
+  id: z.string(),
+  documentId: z.string(),
+  content: z.string(),
+  index: z.number().int().nonnegative(),
+  length: z.number().int().nonnegative().optional(),
+  avgScore: z.number().optional(),
+  createdAt: z.string().datetime(),
+});
+
+export const chunkUpdateSchema = z.object({
+  content: z.string().min(1),
+});
+
+export const chunkRebuildOptionsSchema = z.object({
+  chunkMethod: z.enum(['naive', 'paper', 'book', 'laws']).optional(),
+  chunkSize: z.number().int().min(64).max(2048).optional(),
+  delimiter: z.string().optional(),
 });
