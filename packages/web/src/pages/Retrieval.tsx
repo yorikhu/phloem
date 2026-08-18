@@ -6,13 +6,13 @@
  */
 
 import { useState, useEffect, useRef } from 'react';
-import { Input, Button, Select, Spin, Empty, Typography, Tag } from 'antd';
-import { SearchOutlined } from '@ant-design/icons';
+import { Spin, Empty, Typography, Tag } from 'antd';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { useSearchParams } from 'react-router-dom';
 import { api } from '../api/index.js';
 import { useI18n } from '../i18n/index.js';
-import type { RetrievalChunk } from '@phloem/shared';
+import RetrievalComposer from '../components/RetrievalComposer.js';
+import type { RetrievalChunk, RetrievalStrategy } from '@phloem/shared';
 
 const { Text, Paragraph } = Typography;
 
@@ -23,6 +23,7 @@ export default function RetrievalPage() {
 
   const [question, setQuestion] = useState(initialQuestion);
   const [selectedDatasets, setSelectedDatasets] = useState<string[]>([]);
+  const [strategy, setStrategy] = useState<RetrievalStrategy>('hybrid');
 
   const { data: datasetsData } = useQuery({
     queryKey: ['datasets'],
@@ -36,6 +37,7 @@ export default function RetrievalPage() {
       api.retrieval.retrieve({
         question: q,
         datasetIds: selectedDatasets.length > 0 ? selectedDatasets : datasets.map((d) => d.id),
+        strategy,
         topK: 10,
       }),
   });
@@ -76,36 +78,20 @@ export default function RetrievalPage() {
         </Text>
       </div>
 
-      {/* Dataset filter */}
-      {datasets.length > 0 && (
-        <div style={{ marginBottom: 16, textAlign: 'center' }}>
-          <Select
-            mode="multiple"
-            allowClear
-            placeholder={t('retrieval.datasetFilter')}
-            value={selectedDatasets}
-            onChange={setSelectedDatasets}
-            style={{ minWidth: 320, maxWidth: 480 }}
-            options={datasets.map((d) => ({ label: d.name, value: d.id }))}
-            maxTagCount="responsive"
-          />
-        </div>
-      )}
-
-      {/* Search input */}
-      <Input.Search
-        size="large"
-        placeholder={t('retrieval.placeholder')}
-        value={question}
-        onChange={(e) => setQuestion(e.target.value)}
-        onPressEnter={handleSearch}
-        enterButton={
-          <Button type="primary" icon={<SearchOutlined />} loading={retrieveMutation.isPending}>
-            {t('retrieval.search')}
-          </Button>
-        }
-        style={{ marginBottom: 32 }}
-      />
+      {/* Codex-style composer */}
+      <div style={{ marginBottom: 32 }}>
+        <RetrievalComposer
+          datasets={datasets}
+          selectedDatasets={selectedDatasets}
+          onSelectedDatasetsChange={setSelectedDatasets}
+          strategy={strategy}
+          onStrategyChange={setStrategy}
+          value={question}
+          onValueChange={setQuestion}
+          onSearch={handleSearch}
+          searching={retrieveMutation.isPending}
+        />
+      </div>
 
       {/* Results */}
       {retrieveMutation.isPending ? (

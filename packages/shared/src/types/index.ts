@@ -78,9 +78,13 @@ export interface DocumentListResponse {
 
 // ── Retrieval ──
 
+/** Retrieval strategy: hybrid blends vector + keyword search. */
+export type RetrievalStrategy = 'hybrid' | 'vector' | 'keyword';
+
 export interface RetrievalRequest {
   question: string;
   datasetIds: string[];
+  strategy?: RetrievalStrategy;
   topK?: number;
   similarityThreshold?: number;
 }
