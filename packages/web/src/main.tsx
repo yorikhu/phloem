@@ -4,7 +4,8 @@ import { BrowserRouter } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ConfigProvider } from 'antd';
 import App from './App.js';
-import { antdTheme } from './theme/antd-theme.js';
+import { buildAntdTheme } from './theme/antd-theme.js';
+import { ThemeProvider, useTheme } from './theme/ThemeProvider.jsx';
 import { I18nProvider, useI18n } from './i18n/index.js';
 import { HotkeysProvider } from './hotkeys/index.js';
 import zhCN from 'antd/locale/zh_CN';
@@ -20,11 +21,12 @@ const queryClient = new QueryClient({
   },
 });
 
-/** AntD locale follows the app locale. */
-function LocaleProvider({ children }: { children: React.ReactNode }) {
+/** AntD locale + theme follow app settings. */
+function LocaleThemeProvider({ children }: { children: React.ReactNode }) {
   const { locale } = useI18n();
+  const { theme } = useTheme();
   return (
-    <ConfigProvider theme={antdTheme} locale={locale === 'zh' ? zhCN : enUS}>
+    <ConfigProvider theme={buildAntdTheme(theme)} locale={locale === 'zh' ? zhCN : enUS}>
       {children}
     </ConfigProvider>
   );
@@ -47,15 +49,17 @@ async function bootstrap() {
   ReactDOM.createRoot(document.getElementById('root')!).render(
     <React.StrictMode>
       <QueryClientProvider client={queryClient}>
-        <I18nProvider>
-          <HotkeysProvider>
-            <BrowserRouter>
-              <LocaleProvider>
-                <App />
-              </LocaleProvider>
-            </BrowserRouter>
-          </HotkeysProvider>
-        </I18nProvider>
+        <ThemeProvider>
+          <I18nProvider>
+            <HotkeysProvider>
+              <BrowserRouter>
+                <LocaleThemeProvider>
+                  <App />
+                </LocaleThemeProvider>
+              </BrowserRouter>
+            </HotkeysProvider>
+          </I18nProvider>
+        </ThemeProvider>
       </QueryClientProvider>
     </React.StrictMode>,
   );

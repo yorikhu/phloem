@@ -9,6 +9,16 @@
       href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 8 8' shape-rendering='crispEdges'%3E%3Crect x='1' y='1' width='2' height='1' fill='%236b8cff'/%3E%3Crect x='5' y='1' width='2' height='1' fill='%236b8cff'/%3E%3Crect x='1' y='2' width='6' height='1' fill='%236b8cff'/%3E%3Crect x='2' y='3' width='1' height='1' fill='%236b8cff'/%3E%3Crect x='5' y='3' width='1' height='1' fill='%236b8cff'/%3E%3Crect x='3' y='4' width='2' height='2' fill='%236b8cff'/%3E%3Crect x='2' y='6' width='4' height='1' fill='%233d5199'/%3E%3C/svg%3E"
     />
     <title>Phloem</title>
+    <script>
+      // Set data-theme before first paint to avoid a flash of the
+      // wrong theme. Keep in sync with ThemeProvider's storage key.
+      try {
+        var t = localStorage.getItem('phloem.theme');
+        document.documentElement.dataset.theme = t === 'light' ? 'light' : 'dark';
+      } catch (e) {
+        document.documentElement.dataset.theme = 'dark';
+      }
+    </script>
   </head>
   <body>
     <div id="root"></div>

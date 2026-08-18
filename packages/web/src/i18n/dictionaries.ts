@@ -105,6 +105,11 @@ export const en = {
   'retrieval.retrieving': 'Retrieving...',
   'retrieval.emptyIdle': 'Enter a question to search your knowledge bases',
   'retrieval.emptyNone': 'No results found. Try rephrasing your question.',
+
+  // ── Settings: theme ──
+  'settings.theme': 'Theme',
+  'settings.themeDark': 'Dark',
+  'settings.themeLight': 'Light',
 } as const;
 
 export type Dict = { [K in keyof typeof en]: string };
@@ -210,6 +215,11 @@ export const zh: Dict = {
   'retrieval.retrieving': '检索中...',
   'retrieval.emptyIdle': '输入问题以搜索知识库',
   'retrieval.emptyNone': '没有找到结果，换个问法试试。',
+
+  // ── Settings: theme ──
+  'settings.theme': '主题',
+  'settings.themeDark': '深色',
+  'settings.themeLight': '浅色',
 };
 
 export const dictionaries = { en, zh } as const;

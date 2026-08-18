@@ -231,7 +231,7 @@ export default function CommandPalette({ open, onClose }: { open: boolean; onClo
         justifyContent: 'center',
         // Panel sits slightly above vertical center
         paddingTop: '18vh',
-        background: 'rgba(0, 0, 0, 0.6)',
+        background: 'var(--ph-scrim)',
         backdropFilter: 'blur(2px)',
       }}
       onMouseDown={(e) => {
@@ -251,7 +251,7 @@ export default function CommandPalette({ open, onClose }: { open: boolean; onClo
           background: 'var(--ph-bg-elevated)',
           border: '1px solid var(--ph-border-default)',
           borderRadius: 'var(--ph-radius)',
-          boxShadow: '0 16px 48px rgba(0, 0, 0, 0.5)',
+          boxShadow: 'var(--ph-shadow-popup)',
           overflow: 'hidden',
           animation: 'ph-palette-in 140ms ease',
         }}

@@ -1,19 +1,20 @@
 /**
- * SettingsModal — language and shortcut configuration.
+ * SettingsModal — language, theme, and shortcut configuration.
  *
- * Draft-based: edits (language pick, shortcut re-records, reset) go to
- * a local draft first. Save applies + persists and clears the draft;
- * Discard throws it away. Accidental closes (Esc, mask click) keep
- * the draft — it also persists to localStorage so unsaved edits
- * survive reloads. The modal previews its own labels in the draft
- * language; the rest of the app stays on the committed locale until
- * Save commits it.
+ * Draft-based: edits (language pick, theme pick, shortcut re-records,
+ * reset) go to a local draft first. Save applies + persists and clears
+ * the draft; Discard throws it away. Accidental closes (Esc, mask
+ * click) keep the draft — it also persists to localStorage so unsaved
+ * edits survive reloads. The modal previews its own labels in the
+ * draft language; the rest of the app stays on committed settings
+ * until Save commits them.
  */
 
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Modal, Button, Tooltip } from 'antd';
 import { ReloadOutlined } from '@ant-design/icons';
 import { useI18n, translate, type DictKey } from '../i18n/index.js';
+import { useTheme } from '../theme/index.js';
 import {
   DEFAULT_HOTKEYS,
   comboFromEvent,
@@ -31,16 +32,18 @@ const HOTKEY_ROWS: { action: HotkeyAction; labelKey: 'settings.hotkeySearch' }[]
 
 export default function SettingsModal({ open, onClose }: { open: boolean; onClose: () => void }) {
   const { locale, setLocale } = useI18n();
+  const { theme: liveTheme, setTheme } = useTheme();
   const { hotkeys: liveHotkeys, applyAll } = useHotkeys();
   const [recording, setRecording] = useState<Recording>(null);
   const [conflict, setConflict] = useState<string | null>(null);
   const [draft, setDraft] = useState<SettingsSnapshot | null>(null);
 
   // Snapshot the modal is editing: saved draft > committed settings.
-  const current: SettingsSnapshot = draft ?? { locale, hotkeys: liveHotkeys };
+  const current: SettingsSnapshot = draft ?? { locale, theme: liveTheme, hotkeys: liveHotkeys };
   const dirty =
     draft !== null &&
     (draft.locale !== locale ||
+      draft.theme !== liveTheme ||
       (Object.keys(draft.hotkeys) as HotkeyAction[]).some(
         (a) => draft.hotkeys[a] !== liveHotkeys[a],
       ));
@@ -57,6 +60,10 @@ export default function SettingsModal({ open, onClose }: { open: boolean; onClos
   const currentRef = useRef(current);
   currentRef.current = current;
 
+  // Committed theme readable inside the open-effect.
+  const liveThemeRef = useRef(liveTheme);
+  liveThemeRef.current = liveTheme;
+
   const updateDraft = useCallback((next: SettingsSnapshot) => {
     setDraft(next);
     saveDraft(next);
@@ -65,7 +72,7 @@ export default function SettingsModal({ open, onClose }: { open: boolean; onClos
   // ── Lifecycle: reset transient state on open ──
   useEffect(() => {
     if (open) {
-      setDraft(loadDraft());
+      setDraft(loadDraft(liveThemeRef.current));
       setRecording(null);
       setConflict(null);
     }
@@ -104,6 +111,7 @@ export default function SettingsModal({ open, onClose }: { open: boolean; onClos
   const handleSave = () => {
     if (dirty && draft) {
       setLocale(draft.locale);
+      setTheme(draft.theme);
       applyAll(draft.hotkeys);
     }
     clearDraft();
@@ -154,6 +162,40 @@ export default function SettingsModal({ open, onClose }: { open: boolean; onClos
               onClick={() => updateDraft({ ...current, locale: l })}
             >
               {t(l === 'zh' ? 'settings.languageZh' : 'settings.languageEn')}
+            </Button>
+          ))}
+        </div>
+      </div>
+
+      {/* Theme — save-scoped like language; palette dots hint each mode */}
+      <div style={{ marginBottom: 28 }}>
+        <SectionLabel>{t('settings.theme')}</SectionLabel>
+        <div style={{ display: 'flex', gap: 8 }}>
+          {(['dark', 'light'] as const).map((m) => (
+            <Button
+              key={m}
+              type={current.theme === m ? 'primary' : 'default'}
+              onClick={() => updateDraft({ ...current, theme: m })}
+              icon={
+                <span
+                  aria-hidden
+                  style={{
+                    display: 'inline-block',
+                    width: 12,
+                    height: 12,
+                    borderRadius: '50%',
+                    marginRight: 6,
+                    verticalAlign: '-1px',
+                    background:
+                      m === 'dark'
+                        ? 'linear-gradient(135deg, #161616 50%, #6b8cff 50%)'
+                        : 'linear-gradient(135deg, #ffffff 50%, #4c6af0 50%)',
+                    border: '1px solid var(--ph-border-default)',
+                  }}
+                />
+              }
+            >
+              {t(m === 'dark' ? 'settings.themeDark' : 'settings.themeLight')}
             </Button>
           ))}
         </div>

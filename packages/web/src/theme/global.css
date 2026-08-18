@@ -1,6 +1,7 @@
-/* ── Minimal dark theme global styles ── */
+/* ── Theme variables: dark default, light via [data-theme="light"] ── */
 
-:root {
+:root,
+[data-theme='dark'] {
   --ph-bg-base: #0d0d0d;
   --ph-bg-surface: #161616;
   --ph-bg-elevated: #1e1e1e;
@@ -19,6 +20,8 @@
   --ph-success: #5ec891;
   --ph-warning: #e8a838;
   --ph-error: #e85a5a;
+  --ph-scrim: rgba(0, 0, 0, 0.6);
+  --ph-shadow-popup: 0 16px 48px rgba(0, 0, 0, 0.5);
   --ph-font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", "Helvetica Neue", sans-serif;
   --ph-font-mono: "SF Mono", "JetBrains Mono", "Fira Code", "Cascadia Code", monospace;
   --ph-sidebar-width: 220px;
@@ -27,6 +30,29 @@
   --ph-radius-small: 4px;
   --ph-transition-fast: 120ms ease;
   --ph-transition: 200ms ease;
+}
+
+[data-theme='light'] {
+  --ph-bg-base: #f7f7f8;
+  --ph-bg-surface: #ffffff;
+  --ph-bg-elevated: #ffffff;
+  --ph-bg-hover: #f0f0f2;
+  --ph-border-subtle: #ebebef;
+  --ph-border-default: #e0e0e5;
+  --ph-border-strong: #cfcfd6;
+  --ph-text-primary: #1c1c22;
+  --ph-text-secondary: #55555e;
+  --ph-text-tertiary: #8f8f99;
+  --ph-accent: #4c6af0;
+  --ph-accent-hover: #3d5ad9;
+  --ph-accent-light: #93a7ff;
+  --ph-accent-deep: #3d5199;
+  --ph-accent-dim: rgba(76, 106, 240, 0.1);
+  --ph-success: #2e9963;
+  --ph-warning: #c07d17;
+  --ph-error: #d64545;
+  --ph-scrim: rgba(20, 20, 28, 0.35);
+  --ph-shadow-popup: 0 16px 48px rgba(24, 24, 32, 0.18);
 }
 
 * {

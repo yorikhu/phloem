@@ -146,7 +146,6 @@ export default function AppSider({
           border: 'none',
           marginTop: collapsed ? 0 : 8,
         }}
-        theme="dark"
       />
 
       {/* Footer: account row + GitHub as separate zones */}

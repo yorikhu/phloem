@@ -1,135 +1,147 @@
 /**
- * AntD 5 theme configuration — mapped to Phloem design tokens.
+ * AntD 5 theme configuration — derived from Phloem palettes.
+ *
+ * buildAntdTheme(mode) maps every color slot to paletteFor(mode);
+ * the sidebar Menu stays on light-style tokens in both modes (it
+ * reads --ph-* variables at runtime via its transparent background).
  */
 
 import type { ThemeConfig } from 'antd';
+import { paletteFor, sharedTokens, type ThemeMode } from './tokens.js';
 
-export const antdTheme: ThemeConfig = {
-  token: {
-    // Colors
-    colorPrimary: '#6b8cff',
-    colorBgBase: '#0d0d0d',
-    colorBgContainer: '#161616',
-    colorBgElevated: '#1e1e1e',
-    colorBgLayout: '#0d0d0d',
-    colorText: '#e8e8e8',
-    colorTextSecondary: '#a0a0a0',
-    colorTextTertiary: '#666666',
-    colorTextQuaternary: '#555555',
-    colorBorder: '#333333',
-    colorBorderSecondary: '#2a2a2a',
-    colorBgTextHover: '#262626',
-    colorBgTextActive: '#333333',
+export function buildAntdTheme(mode: ThemeMode): ThemeConfig {
+  const p = paletteFor(mode);
 
-    // Status
-    colorSuccess: '#5ec891',
-    colorWarning: '#e8a838',
-    colorError: '#e85a5a',
+  return {
+    token: {
+      // Colors
+      colorPrimary: p.accent,
+      colorBgBase: p.bgBase,
+      colorBgContainer: p.bgSurface,
+      colorBgElevated: p.bgElevated,
+      colorBgLayout: p.bgBase,
+      colorText: p.textPrimary,
+      colorTextSecondary: p.textSecondary,
+      colorTextTertiary: p.textTertiary,
+      colorTextQuaternary: p.textTertiary,
+      colorBorder: p.borderDefault,
+      colorBorderSecondary: p.borderSubtle,
+      colorBgTextHover: p.bgHover,
+      colorBgTextActive: p.borderDefault,
 
-    // Typography
-    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", "Helvetica Neue", sans-serif',
-    fontSize: 14,
-    fontSizeHeading1: 24,
-    fontSizeHeading2: 20,
-    fontSizeHeading3: 18,
-    fontSizeHeading4: 16,
-    lineHeight: 1.6,
+      // Status
+      colorSuccess: p.success,
+      colorWarning: p.warning,
+      colorError: p.error,
 
-    // Shape
-    borderRadius: 6,
-    borderRadiusSM: 4,
+      // Typography
+      fontFamily: sharedTokens.fontSans,
+      fontSize: 14,
+      fontSizeHeading1: 24,
+      fontSizeHeading2: 20,
+      fontSizeHeading3: 18,
+      fontSizeHeading4: 16,
+      lineHeight: 1.6,
 
-    // Spacing
-    controlHeight: 32,
-    controlHeightLG: 40,
-
-    // Misc
-    wireframe: false,
-  },
-  components: {
-    Layout: {
-      siderBg: '#0d0d0d',
-      headerBg: '#161616',
-      bodyBg: '#0d0d0d',
-      triggerBg: '#1e1e1e',
-    },
-    Menu: {
-      darkItemBg: '#0d0d0d',
-      darkSubMenuItemBg: '#0d0d0d',
-      darkItemSelectedBg: 'rgba(107, 140, 255, 0.12)',
-      darkItemHoverBg: '#262626',
-      darkItemColor: '#a0a0a0',
-      darkItemSelectedColor: '#e8e8e8',
-      itemBorderRadius: 6,
-      itemMarginInline: 8,
-    },
-    Dropdown: {
-      controlItemBgHover: '#262626',
-      controlItemBgActive: '#262626',
-    },
-    Table: {
-      headerBg: '#161616',
-      headerColor: '#a0a0a0',
-      rowHoverBg: '#1e1e1e',
-      borderColor: '#2a2a2a',
-      cellPaddingBlock: 12,
-      cellPaddingInline: 16,
-    },
-    Card: {
-      colorBgContainer: '#161616',
-      headerBg: 'transparent',
-      headerFontSize: 16,
-    },
-    Button: {
-      primaryShadow: 'none',
-      defaultShadow: 'none',
+      // Shape
       borderRadius: 6,
+      borderRadiusSM: 4,
+
+      // Spacing
       controlHeight: 32,
       controlHeightLG: 40,
+
+      // Misc
+      wireframe: false,
     },
-    Input: {
-      colorBgContainer: '#1e1e1e',
-      activeBorderColor: '#6b8cff',
-      hoverBorderColor: '#404040',
+    components: {
+      Layout: {
+        siderBg: p.bgBase,
+        headerBg: p.bgSurface,
+        bodyBg: p.bgBase,
+        triggerBg: p.bgElevated,
+      },
+      Menu: {
+        itemBg: p.bgBase,
+        subMenuItemBg: p.bgBase,
+        itemSelectedBg: p.accentDim,
+        itemHoverBg: p.bgHover,
+        itemColor: p.textSecondary,
+        itemSelectedColor: p.textPrimary,
+        itemBorderRadius: 6,
+        itemMarginInline: 8,
+      },
+      Dropdown: {
+        controlItemBgHover: p.bgHover,
+        controlItemBgActive: p.bgHover,
+      },
+      Table: {
+        headerBg: p.bgSurface,
+        headerColor: p.textSecondary,
+        rowHoverBg: p.bgElevated,
+        borderColor: p.borderSubtle,
+        cellPaddingBlock: 12,
+        cellPaddingInline: 16,
+      },
+      Card: {
+        colorBgContainer: p.bgSurface,
+        headerBg: 'transparent',
+        headerFontSize: 16,
+      },
+      Button: {
+        primaryShadow: 'none',
+        defaultShadow: 'none',
+        borderRadius: 6,
+        controlHeight: 32,
+        controlHeightLG: 40,
+      },
+      Input: {
+        colorBgContainer: p.bgElevated,
+        activeBorderColor: p.accent,
+        hoverBorderColor: p.borderStrong,
+      },
+      Modal: {
+        contentBg: p.bgSurface,
+        headerBg: p.bgSurface,
+        titleColor: p.textPrimary,
+      },
+      Tag: {
+        defaultBg: p.bgElevated,
+        defaultColor: p.textSecondary,
+      },
+      Tooltip: {
+        colorBgSpotlight: p.borderStrong,
+        colorTextLightSolid: p.bgBase,
+      },
+      Spin: {
+        colorPrimary: p.accent,
+      },
+      Empty: {
+        colorText: p.textTertiary,
+        colorTextDisabled: p.textTertiary,
+      },
+      Progress: {
+        defaultColor: p.accent,
+      },
+      Upload: {
+        colorBgContainer: p.bgSurface,
+      },
+      Divider: {
+        colorSplit: p.borderSubtle,
+      },
+      Pagination: {
+        itemBg: 'transparent',
+        itemActiveBg: p.accentDim,
+      },
+      Tabs: {
+        cardBg: 'transparent',
+        itemColor: p.textSecondary,
+        itemSelectedColor: p.textPrimary,
+        inkBarColor: p.accent,
+      },
     },
-    Modal: {
-      contentBg: '#161616',
-      headerBg: '#161616',
-      titleColor: '#e8e8e8',
-    },
-    Tag: {
-      defaultBg: '#1e1e1e',
-      defaultColor: '#a0a0a0',
-    },
-    Tooltip: {
-      colorBgSpotlight: '#333333',
-      colorTextLightSolid: '#e8e8e8',
-    },
-    Spin: {
-      colorPrimary: '#6b8cff',
-    },
-    Empty: {
-      colorText: '#666666',
-      colorTextDisabled: '#555555',
-    },
-    Progress: {
-      defaultColor: '#6b8cff',
-    },
-    Upload: {
-      colorBgContainer: '#161616',
-    },
-    Divider: {
-      colorSplit: '#2a2a2a',
-    },
-    Pagination: {
-      itemBg: 'transparent',
-      itemActiveBg: 'rgba(107, 140, 255, 0.12)',
-    },
-    Tabs: {
-      cardBg: 'transparent',
-      itemColor: '#a0a0a0',
-      itemSelectedColor: '#e8e8e8',
-      inkBarColor: '#6b8cff',
-    },
-  },
-};
+  };
+}
+
+/** Back-compat export: the dark theme as a constant. */
+export const antdTheme = buildAntdTheme('dark');
