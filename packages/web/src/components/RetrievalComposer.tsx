@@ -59,11 +59,15 @@ export default function RetrievalComposer({
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   // ── Auto-growing textarea ──
+  // Two-line minimum (rows=2), grows with content up to MAX, then scrolls.
+  // Scrollbar only appears once the cap is hit — never on init.
   useEffect(() => {
     const el = textareaRef.current;
     if (!el) return;
     el.style.height = 'auto';
+    const capped = el.scrollHeight > MAX_TEXTAREA_HEIGHT;
     el.style.height = `${Math.min(el.scrollHeight, MAX_TEXTAREA_HEIGHT)}px`;
+    el.style.overflowY = capped ? 'auto' : 'hidden';
   }, [value]);
 
   // ── Voice input (Web Speech API, best effort) ──
@@ -155,13 +159,17 @@ export default function RetrievalComposer({
         value={value}
         onChange={(e) => onValueChange(e.target.value)}
         onKeyDown={(e) => {
-          if (e.key === 'Enter' && !e.shiftKey) {
+          // Enter sends; Ctrl/Cmd+Enter (or Shift+Enter) inserts a newline.
+          if (e.key === 'Enter' && (e.ctrlKey || e.metaKey || e.shiftKey)) {
+            return; // native newline
+          }
+          if (e.key === 'Enter') {
             e.preventDefault();
             if (canSend) onSearch();
           }
         }}
         placeholder={t('retrieval.placeholder')}
-        rows={1}
+        rows={2}
         style={{
           display: 'block',
           width: '100%',
@@ -172,8 +180,9 @@ export default function RetrievalComposer({
           color: 'var(--ph-text-primary)',
           fontSize: 14,
           lineHeight: 1.6,
-          padding: '6px 6px 12px',
+          padding: '6px 6px 16px',
           fontFamily: 'inherit',
+          minHeight: 0,
           maxHeight: MAX_TEXTAREA_HEIGHT,
         }}
       />
