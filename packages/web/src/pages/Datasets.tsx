@@ -5,18 +5,7 @@
  */
 
 import { useState } from 'react';
-import {
-  Card,
-  Button,
-  Input,
-  Modal,
-  Form,
-  Empty,
-  Spin,
-  Tooltip,
-  Popconfirm,
-  Typography,
-} from 'antd';
+import { Card, Button, Input, Modal, Form, Empty, Spin, Popconfirm, Typography } from 'antd';
 import { PlusOutlined, DatabaseOutlined, DeleteOutlined, SearchOutlined } from '@ant-design/icons';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
@@ -158,16 +147,14 @@ export default function DatasetsPage() {
                   okText={t('common.delete')}
                   okButtonProps={{ danger: true }}
                 >
-                  <Tooltip title={t('datasets.deleteTooltip')}>
-                    <DeleteOutlined
-                      onClick={(e) => e.stopPropagation()}
-                      style={{
-                        color: 'var(--ph-text-tertiary)',
-                        fontSize: 14,
-                        cursor: 'pointer',
-                      }}
-                    />
-                  </Tooltip>
+                  <DeleteOutlined
+                    onClick={(e) => e.stopPropagation()}
+                    style={{
+                      color: 'var(--ph-text-tertiary)',
+                      fontSize: 14,
+                      cursor: 'pointer',
+                    }}
+                  />
                 </Popconfirm>
               </div>
 

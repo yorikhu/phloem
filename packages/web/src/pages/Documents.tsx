@@ -6,17 +6,7 @@
  */
 
 import { useState, useMemo } from 'react';
-import {
-  Table,
-  Button,
-  Upload,
-  Tag,
-  Tooltip,
-  Popconfirm,
-  Typography,
-  Segmented,
-  message,
-} from 'antd';
+import { Table, Button, Upload, Tag, Popconfirm, Typography, Segmented, message } from 'antd';
 import { DeleteOutlined, InboxOutlined } from '@ant-design/icons';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useSearchParams } from 'react-router-dom';
@@ -155,15 +145,13 @@ export default function DocumentsPage() {
             okText={t('common.delete')}
             okButtonProps={{ danger: true }}
           >
-            <Tooltip title={t('datasets.deleteTooltip')}>
-              <DeleteOutlined
-                style={{
-                  color: 'var(--ph-text-tertiary)',
-                  cursor: 'pointer',
-                  fontSize: 14,
-                }}
-              />
-            </Tooltip>
+            <DeleteOutlined
+              style={{
+                color: 'var(--ph-text-tertiary)',
+                cursor: 'pointer',
+                fontSize: 14,
+              }}
+            />
           </Popconfirm>
         ),
       },
