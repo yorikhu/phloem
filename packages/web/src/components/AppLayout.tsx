@@ -1,5 +1,5 @@
 /**
- * App layout — Codex-style sidebar + content area.
+ * App layout — minimal sidebar + content area.
  *
  * Minimal sidebar with icon+text nav, no decoration.
  * Content area is centered with generous whitespace.

@@ -1,5 +1,5 @@
 /**
- * Codex-inspired design tokens.
+ * Design tokens for Phloem's minimal dark theme.
  *
  * Principles: dark, minimal, generous whitespace, restrained color,
  * monospace accents for data/metadata.

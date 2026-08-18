@@ -1,7 +1,7 @@
 /**
  * Datasets page — card grid view.
  *
- * Codex style: minimal cards, generous spacing, monospace for metadata.
+ * Style: minimal cards, generous spacing, monospace for metadata.
  */
 
 import { useState } from 'react';

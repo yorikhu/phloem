@@ -1,7 +1,7 @@
 /**
  * Retrieval page — query input + result cards.
  *
- * Codex style: large centered input, monospace scores,
+ * Style: large centered input, monospace scores,
  * minimal result cards with content preview.
  */
 

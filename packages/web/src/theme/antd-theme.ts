@@ -1,5 +1,5 @@
 /**
- * AntD 5 theme configuration — mapped to Codex-style tokens.
+ * AntD 5 theme configuration — mapped to Phloem design tokens.
  */
 
 import type { ThemeConfig } from 'antd';

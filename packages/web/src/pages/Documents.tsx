@@ -1,7 +1,7 @@
 /**
  * Documents page — table view with upload.
  *
- * Codex style: clean table, monospace for file metadata,
+ * Style: clean table, monospace for file metadata,
  * inline status badges, drag-drop upload zone.
  */
 
