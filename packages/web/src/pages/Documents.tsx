@@ -5,8 +5,19 @@
  * inline status badges, drag-drop upload zone.
  */
 
-import { useState, useMemo } from 'react';
-import { Table, Button, Upload, Tag, Popconfirm, Typography, Segmented, message } from 'antd';
+import { useState, useMemo, useEffect, useRef } from 'react';
+import {
+  Table,
+  Upload,
+  Tag,
+  Popconfirm,
+  Typography,
+  Segmented,
+  Select,
+  Empty,
+  Spin,
+  message,
+} from 'antd';
 import { DeleteOutlined, InboxOutlined } from '@ant-design/icons';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useSearchParams } from 'react-router-dom';
@@ -71,6 +82,15 @@ export default function DocumentsPage() {
   });
 
   const documents = data?.data ?? [];
+
+  // Auto-select the first dataset once loaded (only when URL has no selection).
+  const autoSelectedRef = useRef(false);
+  useEffect(() => {
+    if (!autoSelectedRef.current && datasets.length > 0 && !datasetId) {
+      autoSelectedRef.current = true;
+      setSearchParams({ datasetId: datasets[0]?.id ?? '' });
+    }
+  }, [datasets, datasetId, setSearchParams]);
 
   const columns = useMemo(
     () => [
@@ -159,7 +179,8 @@ export default function DocumentsPage() {
     [deleteMutation],
   );
 
-  if (!datasetId) {
+  // No datasets yet (query finished, list empty) → empty placeholder
+  if (datasets.length === 0) {
     return (
       <div>
         <h1
@@ -172,20 +193,31 @@ export default function DocumentsPage() {
         >
           {t('documents.title')}
         </h1>
-        <div style={{ marginBottom: 24 }}>
-          {datasets.map((ds) => (
-            <Button
-              key={ds.id}
-              onClick={() => setSearchParams({ datasetId: ds.id })}
-              style={{ marginRight: 8, marginBottom: 8 }}
-            >
-              {ds.name}
-            </Button>
-          ))}
-        </div>
-        <Text style={{ color: 'var(--ph-text-tertiary)', fontSize: 13 }}>
-          {t('documents.selectDataset')}
-        </Text>
+        <Empty
+          image={Empty.PRESENTED_IMAGE_SIMPLE}
+          description={
+            <span style={{ color: 'var(--ph-text-tertiary)' }}>{t('documents.noDatasets')}</span>
+          }
+        />
+      </div>
+    );
+  }
+
+  // Datasets still loading → spinner placeholder
+  if (datasetsData === undefined) {
+    return (
+      <div>
+        <h1
+          style={{
+            fontSize: 24,
+            fontWeight: 600,
+            letterSpacing: '-0.01em',
+            marginBottom: 32,
+          }}
+        >
+          {t('documents.title')}
+        </h1>
+        <Spin style={{ display: 'block', margin: '80px auto' }} />
       </div>
     );
   }
@@ -228,19 +260,17 @@ export default function DocumentsPage() {
         />
       </div>
 
-      {/* Dataset selector */}
+      {/* Dataset selector — fixed size regardless of selection */}
       <div style={{ marginBottom: 24 }}>
-        {datasets.map((ds) => (
-          <Button
-            key={ds.id}
-            size="small"
-            type={ds.id === datasetId ? 'primary' : 'default'}
-            onClick={() => setSearchParams({ datasetId: ds.id })}
-            style={{ marginRight: 8, marginBottom: 8 }}
-          >
-            {ds.name}
-          </Button>
-        ))}
+        <Select
+          showSearch
+          value={datasetId || undefined}
+          onChange={(id) => setSearchParams({ datasetId: id ?? '' })}
+          placeholder={t('retrieval.datasetFilter')}
+          style={{ width: 280 }}
+          options={datasets.map((d) => ({ label: d.name, value: d.id }))}
+          optionFilterProp="label"
+        />
       </div>
 
       {view === 'upload' ? (

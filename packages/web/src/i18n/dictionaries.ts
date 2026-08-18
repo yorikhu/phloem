@@ -81,7 +81,7 @@ export const en = {
   // ── Documents page ──
   'documents.title': 'Documents',
   'documents.count': '{count} {count, plural, =1 {document} other {documents}}',
-  'documents.selectDataset': 'Select a dataset to view its documents.',
+  'documents.noDatasets': 'No datasets yet — create one on the Datasets page first.',
   'documents.viewTable': 'Table',
   'documents.viewUpload': 'Upload',
   'documents.colName': 'Name',
@@ -191,7 +191,7 @@ export const zh: Dict = {
   // ── Documents page ──
   'documents.title': '文档',
   'documents.count': '{count} 篇文档',
-  'documents.selectDataset': '选择一个数据集以查看其文档。',
+  'documents.noDatasets': '还没有数据集——请先在「数据集」页面创建一个。',
   'documents.viewTable': '表格',
   'documents.viewUpload': '上传',
   'documents.colName': '名称',
