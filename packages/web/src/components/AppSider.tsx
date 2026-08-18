@@ -1,10 +1,10 @@
 /**
  * App sidebar — logo, icon actions, primary nav, user footer.
  *
- * Header pairs the logo with search & settings icon buttons.
- * Footer shows the signed-in account (hover = row background) and a
- * GitHub link (hover = accent color, no background) as separate
- * interactive zones.
+ * Header pairs the logo with search & help icon buttons. Account
+ * settings live in the user dropdown (footer). GitHub link sits in
+ * the same footer row as a separate interactive zone (hover tints
+ * the icon only).
  */
 
 import { useState } from 'react';
@@ -17,6 +17,7 @@ import {
   GithubOutlined,
   SettingOutlined,
   LogoutOutlined,
+  QuestionCircleOutlined,
 } from '@ant-design/icons';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
@@ -27,6 +28,9 @@ import { useI18n } from '../i18n/index.js';
 import { formatCombo, useHotkeys } from '../hotkeys/index.js';
 
 const { Sider } = Layout;
+
+/** Documentation site opened by the help button. */
+const DOCS_URL = 'https://docs.phloem.dev';
 
 export default function AppSider({
   onOpenSearch,
@@ -99,9 +103,9 @@ export default function AppSider({
                 onClick={onOpenSearch}
               />
               <IconButton
-                icon={<SettingOutlined />}
-                title={t('common.settings')}
-                onClick={onOpenSettings}
+                icon={<QuestionCircleOutlined />}
+                title={t('sidebar.help')}
+                onClick={() => window.open(DOCS_URL, '_blank', 'noopener,noreferrer')}
               />
             </div>
           </>
@@ -125,9 +129,9 @@ export default function AppSider({
             onClick={onOpenSearch}
           />
           <IconButton
-            icon={<SettingOutlined />}
-            title={t('common.settings')}
-            onClick={onOpenSettings}
+            icon={<QuestionCircleOutlined />}
+            title={t('sidebar.help')}
+            onClick={() => window.open(DOCS_URL, '_blank', 'noopener,noreferrer')}
           />
         </div>
       )}
@@ -165,7 +169,7 @@ export default function AppSider({
             trigger={['click']}
             placement="topRight"
             menu={{
-              items: dropdownItems(t, user?.name, user?.email),
+              items: dropdownItems(t, onOpenSettings, user?.name, user?.email),
             }}
           >
             <div style={{ cursor: 'pointer', padding: 4, borderRadius: 6 }}>
@@ -177,7 +181,7 @@ export default function AppSider({
             <Dropdown
               trigger={['click']}
               placement="topLeft"
-              menu={{ items: dropdownItems(t, user?.name, user?.email) }}
+              menu={{ items: dropdownItems(t, onOpenSettings, user?.name, user?.email) }}
             >
               {/* Account row — hover paints the row background */}
               <div
@@ -270,7 +274,12 @@ function menuItems(t: (key: never) => string) {
   ];
 }
 
-function dropdownItems(t: ReturnType<typeof useI18n>['t'], name?: string, email?: string) {
+function dropdownItems(
+  t: ReturnType<typeof useI18n>['t'],
+  onSettings: () => void,
+  name?: string,
+  email?: string,
+) {
   return [
     {
       key: 'profile',
@@ -289,6 +298,7 @@ function dropdownItems(t: ReturnType<typeof useI18n>['t'], name?: string, email?
       key: 'settings',
       icon: <SettingOutlined />,
       label: t('user.settings'),
+      onClick: onSettings,
     },
     { key: 'logout', icon: <LogoutOutlined />, label: t('user.signOut') },
   ];

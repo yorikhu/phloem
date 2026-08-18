@@ -25,6 +25,7 @@ export const en = {
   // ── Sidebar ──
   'sidebar.search': 'Search',
   'sidebar.github': 'GitHub repository',
+  'sidebar.help': 'Help & documentation',
 
   // ── User ──
   'user.settings': 'Settings',
@@ -129,6 +130,7 @@ export const zh: Dict = {
   // ── Sidebar ──
   'sidebar.search': '搜索',
   'sidebar.github': 'GitHub 仓库',
+  'sidebar.help': '帮助与文档',
 
   // ── User ──
   'user.settings': '设置',
