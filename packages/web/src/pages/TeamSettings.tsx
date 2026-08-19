@@ -207,6 +207,7 @@ export default function TeamSettingsPage() {
             render: (_: unknown, m: TeamMember) =>
               m.role === 'owner' ? null : (
                 <Popconfirm
+                  placement="topRight"
                   title={t('settings.team.confirmRemove', { name: m.name })}
                   onConfirm={() => removeMutation.mutate(m.id)}
                   okText={t('common.delete')}
