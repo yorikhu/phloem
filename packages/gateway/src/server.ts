@@ -22,14 +22,20 @@ import { ErrCode, apiError } from './routes/_lib/response.js';
 
 const adapter = createAdapter(config.adapterType);
 
+const isDev = process.env.NODE_ENV !== 'production';
+
 const app = Fastify({
-  logger: {
-    level: config.logLevel,
-    transport: {
-      target: 'pino-pretty',
-      options: { colorize: true },
-    },
-  },
+  logger: isDev
+    ? {
+        level: config.logLevel,
+        transport: {
+          target: 'pino-pretty',
+          options: { colorize: true },
+        },
+      }
+    : // JSON logs in production/service mode — pino-pretty transport
+      // is a dev dependency and resolves unreliably under pnpm isolation.
+      { level: config.logLevel },
 });
 
 // ── Plugins ────────────────────────────────────────────────────────────────
