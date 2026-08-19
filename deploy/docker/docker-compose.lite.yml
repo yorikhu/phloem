@@ -1,11 +1,24 @@
-# Lite override — Infinity only (no Elasticsearch), reduces memory to ~8GB
-# Usage: docker compose -f docker-compose.yml -f docker-compose.lite.yml up -d
+# ============================================================
+# Lite override — Infinity only, reduces memory to ~8GB
+#
+# Usage:
+#   DOC_ENGINE=infinity docker compose -f docker-compose.yml up -d --wait
+#   (No need for -f docker-compose.lite.yml — infra services are
+#    already gated behind profiles:[infinity] in the base file)
+#
+# This file remains for explicit memory-limit overrides and
+# future per-profile tweaks.
+# ============================================================
 
 services:
-  ragflow-server:
-    environment:
-      - DOC_ENGINE=infinity
+  infinity:
     deploy:
       resources:
         limits:
           memory: 8G
+
+  ragflow-server:
+    deploy:
+      resources:
+        limits:
+          memory: 4G

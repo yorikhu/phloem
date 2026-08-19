@@ -1,62 +1,229 @@
-# Phloem Docker Compose — Full Stack (Gateway + Web + RAGFlow)
+# ============================================================
+# Phloem — Full-Stack Docker Compose
 #
-# Usage:
+# ── 模式一（推荐，首次使用）：官方预构建镜像 ─────────────────
 #   cp .env.example .env
 #   docker compose up -d --wait
+#   → 使用 infiniflow/ragflow:v0.26.4，不依赖 vendor/ragflow
 #
-# For Lite mode (Infinity only, no ES):
-#   docker compose -f docker-compose.yml -f docker-compose.lite.yml up -d
+# ── 模式二（开发/定制）：从源码构建 ─────────────────────────
+#   1. Fork RAGFlow，添加 submodule：
+#      ./deploy/scripts/init-ragflow-submodule.sh <YOUR_GITHUB>
+#   2. 在 .env 中注释掉 RAGFLOW_IMAGE（或留空）
+#   3. docker compose build ragflow-server
+#   4. docker compose up -d --wait
+#
+# ── 切换文档引擎（通过 .env 中的 DOC_ENGINE）────────────────
+#   DOC_ENGINE=infinity      → MySQL + Redis + MinIO + Infinity + RAGFlow（Lite ~8GB）
+#   DOC_ENGINE=elasticsearch → MySQL + Redis + MinIO + ES      + RAGFlow（Full ~16GB）
+#
+# ── 端口一览 ──────────────────────────────────────────────────
+#   3000  Phloem Gateway
+#   5173  Phloem Web UI
+#   9380  RAGFlow API
+#   3306  MySQL
+#   6379  Redis
+#   9000  MinIO API / 9001 Console
+#   23820 Infinity HTTP
+# ============================================================
+
+x-ragflow-image: &ragflow-image '${RAGFLOW_IMAGE:-infiniflow/ragflow:v0.26.4}'
 
 services:
-  # ── Phloem Gateway ──
+  # ── Infrastructure ────────────────────────────────────────
+
+  mysql:
+    image: mysql:8.0
+    container_name: phloem-mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: infini_rag_flow
+      MYSQL_DATABASE: rag_flow
+      MYSQL_USER: rag_flow
+      MYSQL_PASSWORD: infini_rag_flow
+    ports:
+      - '${EXPOSE_MYSQL_PORT:-3306}:3306'
+    volumes:
+      - mysql-data:/var/lib/mysql
+    healthcheck:
+      test: ['CMD', 'mysqladmin', 'ping', '-h', 'localhost', '-u', 'root', '-pinfini_rag_flow']
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+    restart: unless-stopped
+    networks:
+      - phloem-net
+
+  redis:
+    image: redis:7-alpine
+    container_name: phloem-redis
+    command: redis-server --requirepass infini_rag_flow
+    ports:
+      - '${REDIS_PORT:-6379}:6379'
+    volumes:
+      - redis-data:/data
+    healthcheck:
+      test: ['CMD', 'redis-cli', '-a', 'infini_rag_flow', 'ping']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+    networks:
+      - phloem-net
+
+  minio:
+    image: minio/minio:latest
+    container_name: phloem-minio
+    environment:
+      MINIO_ROOT_USER: rag_flow
+      MINIO_ROOT_PASSWORD: infini_rag_flow
+    ports:
+      - '${MINIO_PORT:-9000}:9000'
+      - '${MINIO_CONSOLE_PORT:-9001}:9001'
+    volumes:
+      - minio-data:/data
+    command: server /data --console-address ':9001'
+    healthcheck:
+      test: ['CMD', 'curl', '-f', 'http://localhost:9000/minio/health/live']
+      interval: 15s
+      timeout: 10s
+      retries: 5
+    restart: unless-stopped
+    networks:
+      - phloem-net
+
+  # ── Document Parsing Engine — Infinity (Lite) ──────────────
+
+  infinity:
+    image: infiniflow/infinity:1.1.0-cpu
+    container_name: phloem-infinity
+    environment:
+      INFINITY_HTTP_PORT: 23820
+      INFINITY_THRIFT_PORT: 23817
+    ports:
+      - '${INFINITY_HTTP_PORT:-23820}:23820'
+      - '${INFINITY_THRIFT_PORT:-23817}:23817'
+    volumes:
+      - infinity-data:/infinity/data
+    mem_limit: 8g
+    healthcheck:
+      test: ['CMD', 'curl', '-f', 'http://localhost:23820/api/v1/health']
+      interval: 20s
+      timeout: 10s
+      retries: 10
+      start_period: 60s
+    restart: unless-stopped
+    networks:
+      - phloem-net
+
+  # ── RAGFlow Engine ────────────────────────────────────────
+
+  ragflow-server:
+    image: *ragflow-image
+    container_name: phloem-ragflow
+    environment:
+      DOC_ENGINE: '${DOC_ENGINE:-infinity}'
+      DB_TYPE: '${DB_TYPE:-mysql}'
+      DEVICE: '${DEVICE:-cpu}'
+      MYSQL_HOST: mysql
+      MYSQL_PORT: 3306
+      MYSQL_USER: rag_flow
+      MYSQL_PASSWORD: infini_rag_flow
+      MYSQL_DATABASE: rag_flow
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      REDIS_PASSWORD: infini_rag_flow
+      MINIO_HOST: minio
+      MINIO_PORT: 9000
+      MINIO_USER: rag_flow
+      MINIO_PASSWORD: infini_rag_flow
+      INFINITY_HOST: infinity
+      INFINITY_HTTP_PORT: 23820
+      INFINITY_THRIFT_PORT: 23817
+      SVR_HTTP_PORT: 9380
+      ADMIN_SVR_HTTP_PORT: 9381
+      API_PROXY_SCHEME: python
+      MACOS: '${MACOS:-0}'
+      TZ: Asia/Shanghai
+    ports:
+      - '${RAGFLOW_PORT:-9380}:9380'
+      - '${ADMIN_SVR_HTTP_PORT:-9381}:9381'
+    volumes:
+      - ragflow-data:/ragflow/data
+    depends_on:
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      minio:
+        condition: service_healthy
+      infinity:
+        condition: service_healthy
+    healthcheck:
+      test: ['CMD', 'curl', '-sf', 'http://localhost:9380/health']
+      interval: 15s
+      timeout: 10s
+      retries: 15
+      start_period: 120s
+    restart: unless-stopped
+    networks:
+      - phloem-net
+
+  # ── Phloem Gateway ────────────────────────────────────────
+
   gateway:
     build:
       context: ../..
       dockerfile: deploy/docker/Dockerfile.gateway
+    container_name: phloem-gateway
+    environment:
+      PHLOEM_PORT: 3000
+      PHLOEM_ADAPTER_TYPE: '${PHLOEM_ADAPTER_TYPE:-mock}'
+      PHLOEM_RAGFLOW_URL: 'http://ragflow-server:9380'
+      PHLOEM_RAGFLOW_API_KEY: '${PHLOEM_RAGFLOW_API_KEY:-}'
+      PHLOEM_LOG_LEVEL: '${PHLOEM_LOG_LEVEL:-info}'
+      PHLOEM_CORS_ORIGINS: '${PHLOEM_CORS_ORIGINS:-*}'
+      PHLOEM_MYSQL_URL: 'mysql://rag_flow:infini_rag_flow@mysql:3306/rag_flow'
+      PHLOEM_REDIS_URL: 'redis://:infini_rag_flow@redis:6379'
+      PHLOEM_MINIO_URL: 'http://minio:9000'
+      PHLOEM_MINIO_USER: rag_flow
+      PHLOEM_MINIO_PASSWORD: infini_rag_flow
     ports:
       - '${PHLOEM_PORT:-3000}:3000'
-    environment:
-      - PHLOEM_ADAPTER_TYPE=${PHLOEM_ADAPTER_TYPE:-mock}
-      - PHLOEM_RAGFLOW_URL=http://ragflow-server:9380
-      - PHLOEM_RAGFLOW_API_KEY=${PHLOEM_RAGFLOW_API_KEY:-}
-      - PHLOEM_LOG_LEVEL=${PHLOEM_LOG_LEVEL:-info}
     depends_on:
       ragflow-server:
         condition: service_healthy
     restart: unless-stopped
+    networks:
+      - phloem-net
 
-  # ── Phloem Web ──
+  # ── Phloem Web UI ───────────────────────────────────────
+
   web:
     build:
       context: ../..
       dockerfile: deploy/docker/Dockerfile.web
+      args:
+        VITE_API_MODE: '${VITE_API_MODE:-mock}'
+    container_name: phloem-web
+    environment:
+      VITE_API_MODE: '${VITE_API_MODE:-mock}'
+      VITE_GATEWAY_URL: '/api'
     ports:
       - '${WEB_PORT:-5173}:80'
     depends_on:
       - gateway
     restart: unless-stopped
+    networks:
+      - phloem-net
 
-  # ── RAGFlow Engine (built from vendor/ragflow) ──
-  ragflow-server:
-    build:
-      context: ../../vendor/ragflow
-      dockerfile: Dockerfile
-      args:
-        - DOC_ENGINE=infinity
-    ports:
-      - '${RAGFLOW_PORT:-9380}:9380'
-    environment:
-      - DOC_ENGINE=infinity
-      - API_HOST=0.0.0.0
-    volumes:
-      - ragflow-data:/data
-    healthcheck:
-      test: ['CMD', 'curl', '-f', 'http://localhost:9380/health']
-      interval: 10s
-      timeout: 5s
-      retries: 10
-      start_period: 60s
-    restart: unless-stopped
+networks:
+  phloem-net:
+    driver: bridge
 
 volumes:
+  mysql-data:
+  redis-data:
+  minio-data:
+  infinity-data:
   ragflow-data:
