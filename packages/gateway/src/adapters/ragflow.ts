@@ -217,16 +217,16 @@ export class RAGFlowAdapter implements IKnowledgeAdapter {
       name: input.name,
       description: input.description ?? '',
     };
+    // v0.26.x: parser_config accepts scalar overrides only; layout_recognize
+    // is a string ("DeepDOC"/"NAIVE"/...) and chunk_method is a top-level
+    // sibling, not nested inside parser_config.
     if (input.embeddingModel) {
       body.embedding_model = input.embeddingModel;
     }
-    // Default parser config — naive chunk method
+    body.chunk_method = 'naive';
     body.parser_config = {
       chunk_token_num: 128,
-      layout_recognize: true,
       html4excel: false,
-      delimeter: '\\n!?;。！？；',
-      chunk_method: 'naive',
     };
 
     const resp = await this.rfFetch<RAGFlowDataset>('/api/v1/datasets', {
@@ -238,8 +238,10 @@ export class RAGFlowAdapter implements IKnowledgeAdapter {
   }
 
   async deleteDataset(id: string): Promise<void> {
-    const resp = await this.rfFetch<void>(`/api/v1/datasets/${id}`, {
+    // RAGFlow v0.26: DELETE /datasets?id=<id> with JSON body {ids:[id]}
+    const resp = await this.rfFetch<void>(`/api/v1/datasets?id=${id}`, {
       method: 'DELETE',
+      body: JSON.stringify({ ids: [id] }),
     });
     assertOk(resp);
   }
@@ -361,7 +363,7 @@ export class RAGFlowAdapter implements IKnowledgeAdapter {
     try {
       const controller = new AbortController();
       const timer = setTimeout(() => controller.abort(), 5000);
-      const response = await fetch(`${this.baseUrl}/health`, {
+      const response = await fetch(`${this.baseUrl}/v1/system/healthz`, {
         signal: controller.signal,
         headers: { Authorization: `Bearer ${this.apiKey}` },
       });

@@ -49,3 +49,4 @@ vendor/ragflow/**/node_modules/
 vendor/ragflow/**/__pycache__/
 vendor/ragflow/**/target/
 _tmp_*
+packages/gateway/.env
