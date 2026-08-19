@@ -5,6 +5,16 @@ info:
     Phloem is an open-source, self-hosted knowledge base platform built on RAGFlow.
     This is the single source of truth for all API contracts — frontend, gateway, MCP server,
     and tests all consume this specification.
+
+    All responses follow a unified wrapper format:
+    ```json
+    {
+      "code": 0,
+      "data": {...},
+      "request_id": "uuid",
+      "timestamp": "ISO8601"
+    }
+    ```
   version: 0.1.0
   license:
     name: Apache-2.0
@@ -12,26 +22,48 @@ info:
   contact:
     name: Phytul
     url: https://github.com/phytul/phloem
+
 servers:
   - url: http://localhost:3000/api/v1
     description: Local development
   - url: /api/v1
     description: Same-origin (production)
+
 tags:
+  - name: Health
+    description: Service health and readiness
   - name: Datasets
     description: Knowledge base dataset management
   - name: Documents
     description: Document upload and management
+  - name: Chunks
+    description: Document chunk (text slice) operations
   - name: Retrieval
     description: Knowledge retrieval and search
-  - name: Health
-    description: Health check endpoints
+  - name: Chat
+    description: Chat sessions and streaming completions
+  - name: API Keys
+    description: API key management
+  - name: Account
+    description: Current user account
+  - name: Team
+    description: Team member management
+  - name: Providers
+    description: LLM provider configuration
+  - name: Sources
+    description: External data source sync
+  - name: Channels
+    description: Multi-channel deployment
+  - name: Usage
+    description: Usage statistics and quota
+
 paths:
+  # ── Health ───────────────────────────────────────────────────────────────
   /health:
     get:
       tags: [Health]
       summary: Health check
-      description: Returns the service health status and adapter type
+      description: Returns service health status and which adapter is active (mock or ragflow)
       operationId: getHealth
       responses:
         '200':
@@ -39,7 +71,9 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/HealthStatus'
+                $ref: '#/components/schemas/ApiResponse_HealthStatus'
+
+  # ── Datasets ──────────────────────────────────────────────────────────────
   /datasets:
     get:
       tags: [Datasets]
@@ -50,23 +84,7 @@ paths:
         - $ref: '#/components/parameters/PageSizeQuery'
       responses:
         '200':
-          description: List of datasets
-          content:
-            application/json:
-              schema:
-                type: object
-                required: [data, total, page, pageSize]
-                properties:
-                  data:
-                    type: array
-                    items:
-                      $ref: '#/components/schemas/Dataset'
-                  total:
-                    type: integer
-                  page:
-                    type: integer
-                  pageSize:
-                    type: integer
+          $ref: '#/components/responses/ApiResponse_DatasetListResponse'
     post:
       tags: [Datasets]
       summary: Create a dataset
@@ -79,11 +97,8 @@ paths:
               $ref: '#/components/schemas/DatasetCreate'
       responses:
         '201':
-          description: Dataset created
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Dataset'
+          $ref: '#/components/responses/ApiResponse_Dataset'
+
   /datasets/{datasetId}:
     get:
       tags: [Datasets]
@@ -93,11 +108,7 @@ paths:
         - $ref: '#/components/parameters/DatasetIdPath'
       responses:
         '200':
-          description: Dataset details
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Dataset'
+          $ref: '#/components/responses/ApiResponse_Dataset'
         '404':
           $ref: '#/components/responses/NotFound'
     delete:
@@ -111,6 +122,8 @@ paths:
           description: Dataset deleted
         '404':
           $ref: '#/components/responses/NotFound'
+
+  # ── Documents ──────────────────────────────────────────────────────────────
   /datasets/{datasetId}/documents:
     get:
       tags: [Documents]
@@ -122,23 +135,7 @@ paths:
         - $ref: '#/components/parameters/PageSizeQuery'
       responses:
         '200':
-          description: List of documents
-          content:
-            application/json:
-              schema:
-                type: object
-                required: [data, total, page, pageSize]
-                properties:
-                  data:
-                    type: array
-                    items:
-                      $ref: '#/components/schemas/Document'
-                  total:
-                    type: integer
-                  page:
-                    type: integer
-                  pageSize:
-                    type: integer
+          $ref: '#/components/responses/ApiResponse_DocumentListResponse'
     post:
       tags: [Documents]
       summary: Upload a document to a dataset
@@ -150,20 +147,26 @@ paths:
         content:
           multipart/form-data:
             schema:
-              type: object
-              required: [file]
-              properties:
-                file:
-                  type: string
-                  format: binary
+              $ref: '#/components/schemas/UploadDocumentRequest'
       responses:
         '201':
-          description: Document uploaded
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Document'
+          $ref: '#/components/responses/ApiResponse_Document'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+
   /datasets/{datasetId}/documents/{documentId}:
+    get:
+      tags: [Documents]
+      summary: Get document by ID
+      operationId: getDocument
+      parameters:
+        - $ref: '#/components/parameters/DatasetIdPath'
+        - $ref: '#/components/parameters/DocumentIdPath'
+      responses:
+        '200':
+          $ref: '#/components/responses/ApiResponse_Document'
+        '404':
+          $ref: '#/components/responses/NotFound'
     delete:
       tags: [Documents]
       summary: Delete a document
@@ -176,11 +179,74 @@ paths:
           description: Document deleted
         '404':
           $ref: '#/components/responses/NotFound'
+
+  # ── Chunks ────────────────────────────────────────────────────────────────
+  /datasets/{datasetId}/documents/{documentId}/chunks:
+    get:
+      tags: [Chunks]
+      summary: List chunks of a parsed document
+      operationId: listChunks
+      parameters:
+        - $ref: '#/components/parameters/DatasetIdPath'
+        - $ref: '#/components/parameters/DocumentIdPath'
+        - $ref: '#/components/parameters/PageQuery'
+        - $ref: '#/components/parameters/PageSizeQuery'
+      responses:
+        '200':
+          $ref: '#/components/responses/ApiResponse_ChunkListResponse'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    patch:
+      tags: [Chunks]
+      summary: Update a chunk's content
+      operationId: updateChunk
+      parameters:
+        - $ref: '#/components/parameters/DatasetIdPath'
+        - $ref: '#/components/parameters/DocumentIdPath'
+        - name: chunkId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ChunkUpdate'
+      responses:
+        '200':
+          $ref: '#/components/responses/ApiResponse_Chunk'
+
+  /datasets/{datasetId}/documents/{documentId}/chunks/rebuild:
+    post:
+      tags: [Chunks]
+      summary: Trigger chunk rebuild (re-parse) with new parameters
+      operationId: rebuildChunks
+      parameters:
+        - $ref: '#/components/parameters/DatasetIdPath'
+        - $ref: '#/components/parameters/DocumentIdPath'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ChunkRebuildOptions'
+      responses:
+        '200':
+          description: Rebuild triggered
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse_RebuildResult'
+
+  # ── Retrieval ─────────────────────────────────────────────────────────────
   /retrieval:
     post:
       tags: [Retrieval]
-      summary: Retrieve knowledge
-      description: Search across datasets using hybrid retrieval (vector + keyword)
+      summary: Retrieve knowledge from datasets
+      description: |
+        Search across datasets using hybrid retrieval (vector + keyword + re-ranking).
+        Returns relevant document chunks with similarity scores and source attribution.
       operationId: retrieve
       requestBody:
         required: true
@@ -190,12 +256,273 @@ paths:
               $ref: '#/components/schemas/RetrievalRequest'
       responses:
         '200':
-          description: Retrieval results
+          $ref: '#/components/responses/ApiResponse_RetrievalResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+
+  # ── Chat ──────────────────────────────────────────────────────────────────
+  /chats:
+    get:
+      tags: [Chat]
+      summary: List chat assistants
+      operationId: listChats
+      parameters:
+        - $ref: '#/components/parameters/PageQuery'
+        - $ref: '#/components/parameters/PageSizeQuery'
+      responses:
+        '200':
+          $ref: '#/components/responses/ApiResponse_ChatListResponse'
+    post:
+      tags: [Chat]
+      summary: Create a chat assistant
+      operationId: createChat
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ChatCreate'
+      responses:
+        '201':
+          $ref: '#/components/responses/ApiResponse_ChatAssistant'
+
+  /chats/{chatId}:
+    get:
+      tags: [Chat]
+      summary: Get chat assistant
+      operationId: getChat
+      parameters:
+        - name: chatId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          $ref: '#/components/responses/ApiResponse_ChatAssistant'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    delete:
+      tags: [Chat]
+      summary: Delete chat assistant
+      operationId: deleteChat
+      parameters:
+        - name: chatId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '204':
+          description: Chat deleted
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /chats/{chatId}/sessions:
+    get:
+      tags: [Chat]
+      summary: List sessions for a chat
+      operationId: listSessions
+      parameters:
+        - name: chatId
+          in: path
+          required: true
+          schema:
+            type: string
+        - $ref: '#/components/parameters/PageQuery'
+        - $ref: '#/components/parameters/PageSizeQuery'
+      responses:
+        '200':
+          $ref: '#/components/responses/ApiResponse_SessionListResponse'
+    post:
+      tags: [Chat]
+      summary: Create a new session
+      operationId: createSession
+      parameters:
+        - name: chatId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SessionCreate'
+      responses:
+        '201':
+          $ref: '#/components/responses/ApiResponse_Session'
+
+  /chats/{chatId}/completion:
+    post:
+      tags: [Chat]
+      summary: Stream chat completion (SSE)
+      description: |
+        Sends a question and streams back the LLM response as Server-Sent Events.
+
+        SSE stream format (newline-delimited JSON):
+        ```
+        event: message
+        data: {"type":"delta","content":"Hello","sessionId":"abc"}
+
+        event: done
+        data: {}
+        ```
+
+        Set `stream: false` in the request body for a non-streaming response.
+      operationId: chatCompletion
+      parameters:
+        - name: chatId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ChatCompletionRequest'
+      responses:
+        '200':
+          description: Streaming response (SSE)
+          content:
+            application/x-ndjson:
+              schema:
+                type: string
+                format: binary
+        '400':
+          $ref: '#/components/responses/BadRequest'
+
+  /chats/{chatId}/sessions/{sessionId}/messages:
+    get:
+      tags: [Chat]
+      summary: List messages in a session
+      operationId: listMessages
+      parameters:
+        - name: chatId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: sessionId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          $ref: '#/components/responses/ApiResponse_MessageListResponse'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  # ── API Keys ──────────────────────────────────────────────────────────────
+  /apikeys:
+    get:
+      tags: [API Keys]
+      summary: List API keys
+      operationId: listApiKeys
+      responses:
+        '200':
+          $ref: '#/components/responses/ApiResponse_ApiKeyListResponse'
+    post:
+      tags: [API Keys]
+      summary: Create API key
+      operationId: createApiKey
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [name]
+              properties:
+                name:
+                  type: string
+                  minLength: 1
+                  maxLength: 255
+      responses:
+        '201':
+          $ref: '#/components/responses/ApiResponse_ApiKeyCreated'
+
+  /apikeys/{keyId}:
+    delete:
+      tags: [API Keys]
+      summary: Revoke API key
+      operationId: deleteApiKey
+      parameters:
+        - name: keyId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '204':
+          description: API key revoked
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  # ── Account ──────────────────────────────────────────────────────────────
+  /account:
+    get:
+      tags: [Account]
+      summary: Get current user
+      description: Returns the authenticated user (from Authorization header or session)
+      operationId: getAccount
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          $ref: '#/components/responses/ApiResponse_CurrentUser'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  # ── Team ─────────────────────────────────────────────────────────────────
+  /team/members:
+    get:
+      tags: [Team]
+      summary: List team members
+      operationId: listTeamMembers
+      responses:
+        '200':
+          $ref: '#/components/responses/ApiResponse_TeamMemberListResponse'
+    post:
+      tags: [Team]
+      summary: Invite team member
+      operationId: inviteTeamMember
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TeamInvite'
+      responses:
+        '501':
+          description: Not yet implemented (RAGFlow UI-based user management)
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/RetrievalResponse'
+                $ref: '#/components/schemas/Error'
+
+  # ── Usage ────────────────────────────────────────────────────────────────
+  /usage:
+    get:
+      tags: [Usage]
+      summary: Get usage statistics
+      operationId: getUsage
+      responses:
+        '200':
+          $ref: '#/components/responses/ApiResponse_UsageStats'
+
+# ── Components ────────────────────────────────────────────────────────────────
+
 components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      description: RAGFlow API key (Bearer token)
+
   parameters:
     PageQuery:
       name: page
@@ -205,7 +532,7 @@ components:
         minimum: 1
         default: 1
     PageSizeQuery:
-      name: pageSize
+      name: page_size
       in: query
       schema:
         type: integer
@@ -224,26 +551,367 @@ components:
       required: true
       schema:
         type: string
+
   responses:
     NotFound:
       description: Resource not found
       content:
         application/json:
           schema:
-            $ref: '#/components/schemas/Error'
+            $ref: '#/components/schemas/ApiResponse_Null'
     BadRequest:
       description: Invalid request
       content:
         application/json:
           schema:
-            $ref: '#/components/schemas/Error'
+            $ref: '#/components/schemas/ApiResponse_Error'
+    Unauthorized:
+      description: Unauthorized
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiResponse_Null'
     InternalError:
       description: Internal server error
       content:
         application/json:
           schema:
-            $ref: '#/components/schemas/Error'
+            $ref: '#/components/schemas/ApiResponse_Error'
+
+    ApiResponse_HealthStatus:
+      description: OK
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiResponse_HealthStatus'
+    ApiResponse_Dataset:
+      description: OK
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiResponse_Dataset'
+    ApiResponse_DatasetListResponse:
+      description: OK
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiResponse_DatasetListResponse'
+    ApiResponse_Document:
+      description: OK
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiResponse_Document'
+    ApiResponse_DocumentListResponse:
+      description: OK
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiResponse_DocumentListResponse'
+    ApiResponse_Chunk:
+      description: OK
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiResponse_Chunk'
+    ApiResponse_ChunkListResponse:
+      description: OK
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiResponse_ChunkListResponse'
+    ApiResponse_RebuildResult:
+      description: OK
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiResponse_RebuildResult'
+    ApiResponse_RetrievalResponse:
+      description: OK
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiResponse_RetrievalResponse'
+    ApiResponse_ChatListResponse:
+      description: OK
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiResponse_ChatListResponse'
+    ApiResponse_ChatAssistant:
+      description: Created
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiResponse_ChatAssistant'
+    ApiResponse_SessionListResponse:
+      description: OK
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiResponse_SessionListResponse'
+    ApiResponse_Session:
+      description: Created
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiResponse_Session'
+    ApiResponse_MessageListResponse:
+      description: OK
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiResponse_MessageListResponse'
+    ApiResponse_ApiKeyListResponse:
+      description: OK
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiResponse_ApiKeyListResponse'
+    ApiResponse_ApiKeyCreated:
+      description: Created
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiResponse_ApiKeyCreated'
+    ApiResponse_CurrentUser:
+      description: OK
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiResponse_CurrentUser'
+    ApiResponse_TeamMemberListResponse:
+      description: OK
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiResponse_TeamMemberListResponse'
+    ApiResponse_UsageStats:
+      description: OK
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiResponse_UsageStats'
+    ApiResponse_Null:
+      description: Error response
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiResponse_Null'
+    ApiResponse_Error:
+      description: Error response
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiResponse_Error'
+
+  # ── Schemas ────────────────────────────────────────────────────────────────
+
   schemas:
+    # ── ApiResponse wrapper ───────────────────────────────────────────────
+    ApiResponse_HealthStatus:
+      $ref: '#/components/schemas/ApiResponse_HealthStatus'
+    ApiResponse_Dataset:
+      allOf:
+        - $ref: '#/components/schemas/ApiResponse_Wrapper'
+        - type: object
+          properties:
+            data:
+              $ref: '#/components/schemas/Dataset'
+    ApiResponse_DatasetListResponse:
+      allOf:
+        - $ref: '#/components/schemas/ApiResponse_Wrapper'
+        - type: object
+          properties:
+            data:
+              $ref: '#/components/schemas/DatasetListResponse'
+    ApiResponse_Document:
+      allOf:
+        - $ref: '#/components/schemas/ApiResponse_Wrapper'
+        - type: object
+          properties:
+            data:
+              $ref: '#/components/schemas/Document'
+    ApiResponse_DocumentListResponse:
+      allOf:
+        - $ref: '#/components/schemas/ApiResponse_Wrapper'
+        - type: object
+          properties:
+            data:
+              $ref: '#/components/schemas/DocumentListResponse'
+    ApiResponse_Chunk:
+      allOf:
+        - $ref: '#/components/schemas/ApiResponse_Wrapper'
+        - type: object
+          properties:
+            data:
+              $ref: '#/components/schemas/Chunk'
+    ApiResponse_ChunkListResponse:
+      allOf:
+        - $ref: '#/components/schemas/ApiResponse_Wrapper'
+        - type: object
+          properties:
+            data:
+              type: object
+              properties:
+                chunks:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/Chunk'
+                total:
+                  type: integer
+    ApiResponse_RebuildResult:
+      allOf:
+        - $ref: '#/components/schemas/ApiResponse_Wrapper'
+        - type: object
+          properties:
+            data:
+              type: object
+              properties:
+                status:
+                  type: string
+                  enum: [triggered]
+    ApiResponse_RetrievalResponse:
+      allOf:
+        - $ref: '#/components/schemas/ApiResponse_Wrapper'
+        - type: object
+          properties:
+            data:
+              $ref: '#/components/schemas/RetrievalResponse'
+    ApiResponse_ChatListResponse:
+      allOf:
+        - $ref: '#/components/schemas/ApiResponse_Wrapper'
+        - type: object
+          properties:
+            data:
+              type: object
+              properties:
+                chats:
+                  type: array
+                  items:
+                    type: object
+                total:
+                  type: integer
+    ApiResponse_ChatAssistant:
+      allOf:
+        - $ref: '#/components/schemas/ApiResponse_Wrapper'
+        - type: object
+          properties:
+            data:
+              type: object
+    ApiResponse_SessionListResponse:
+      allOf:
+        - $ref: '#/components/schemas/ApiResponse_Wrapper'
+        - type: object
+          properties:
+            data:
+              type: object
+              properties:
+                sessions:
+                  type: array
+                  items:
+                    type: object
+                total:
+                  type: integer
+    ApiResponse_Session:
+      allOf:
+        - $ref: '#/components/schemas/ApiResponse_Wrapper'
+        - type: object
+          properties:
+            data:
+              type: object
+    ApiResponse_MessageListResponse:
+      allOf:
+        - $ref: '#/components/schemas/ApiResponse_Wrapper'
+        - type: object
+          properties:
+            data:
+              type: array
+              items:
+                $ref: '#/components/schemas/ChatMessage'
+    ApiResponse_ApiKeyListResponse:
+      allOf:
+        - $ref: '#/components/schemas/ApiResponse_Wrapper'
+        - type: object
+          properties:
+            data:
+              type: array
+              items:
+                type: object
+    ApiResponse_ApiKeyCreated:
+      allOf:
+        - $ref: '#/components/schemas/ApiResponse_Wrapper'
+        - type: object
+          properties:
+            data:
+              type: object
+              properties:
+                api_key_id:
+                  type: string
+                api_key:
+                  type: string
+                name:
+                  type: string
+    ApiResponse_CurrentUser:
+      allOf:
+        - $ref: '#/components/schemas/ApiResponse_Wrapper'
+        - type: object
+          properties:
+            data:
+              $ref: '#/components/schemas/CurrentUser'
+    ApiResponse_TeamMemberListResponse:
+      allOf:
+        - $ref: '#/components/schemas/ApiResponse_Wrapper'
+        - type: object
+          properties:
+            data:
+              type: array
+              items:
+                $ref: '#/components/schemas/TeamMember'
+    ApiResponse_UsageStats:
+      allOf:
+        - $ref: '#/components/schemas/ApiResponse_Wrapper'
+        - type: object
+          properties:
+            data:
+              $ref: '#/components/schemas/UsageStats'
+    ApiResponse_Null:
+      allOf:
+        - $ref: '#/components/schemas/ApiResponse_Wrapper'
+        - type: object
+          properties:
+            data:
+              type: string
+              enum: [null]
+    ApiResponse_Error:
+      allOf:
+        - $ref: '#/components/schemas/ApiResponse_Wrapper'
+        - type: object
+          properties:
+            data:
+              type: string
+              enum: [null]
+            message:
+              type: string
+
+    ApiResponse_Wrapper:
+      type: object
+      required: [code, data, request_id, timestamp]
+      properties:
+        code:
+          type: integer
+          description: 0 = success, non-zero = error
+        data:
+          description: Response payload (null on error)
+        request_id:
+          type: string
+          format: uuid
+        timestamp:
+          type: string
+          format: date-time
+
+    # ── Domain schemas ───────────────────────────────────────────────────
+
     HealthStatus:
       type: object
       required: [status, adapter, version]
@@ -259,9 +927,12 @@ components:
         timestamp:
           type: string
           format: date-time
+        detail:
+          type: string
+
     Dataset:
       type: object
-      required: [id, name, createdAt]
+      required: [id, name, documentCount, chunkCount, createdAt]
       properties:
         id:
           type: string
@@ -281,6 +952,7 @@ components:
         updatedAt:
           type: string
           format: date-time
+
     DatasetCreate:
       type: object
       required: [name]
@@ -292,9 +964,24 @@ components:
         description:
           type: string
           maxLength: 512
-        embeddingModel:
+        embedding_model:
           type: string
-          default: 'BAAI/bge-large-zh-v1.5'
+
+    DatasetListResponse:
+      type: object
+      required: [data, total, page, pageSize]
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/Dataset'
+        total:
+          type: integer
+        page:
+          type: integer
+        pageSize:
+          type: integer
+
     Document:
       type: object
       required: [id, datasetId, name, status, createdAt]
@@ -317,36 +1004,106 @@ components:
           type: number
           format: float
           minimum: 0
-          maximum: 1
+          maximum: 100
         createdAt:
           type: string
           format: date-time
         updatedAt:
           type: string
           format: date-time
+
+    DocumentListResponse:
+      type: object
+      required: [data, total, page, pageSize]
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/Document'
+        total:
+          type: integer
+        page:
+          type: integer
+        pageSize:
+          type: integer
+
+    UploadDocumentRequest:
+      type: object
+      required: [file]
+      properties:
+        file:
+          type: string
+          format: binary
+          description: Binary file upload
+
+    Chunk:
+      type: object
+      required: [id, documentId, content, index, createdAt]
+      properties:
+        id:
+          type: string
+        documentId:
+          type: string
+        content:
+          type: string
+        index:
+          type: integer
+        length:
+          type: integer
+        avgScore:
+          type: number
+          format: float
+        createdAt:
+          type: string
+          format: date-time
+
+    ChunkUpdate:
+      type: object
+      properties:
+        content:
+          type: string
+          description: New chunk content
+
+    ChunkRebuildOptions:
+      type: object
+      properties:
+        chunk_method:
+          type: string
+          enum: [naive, paper, book, laws]
+        chunk_size:
+          type: integer
+          minimum: 1
+          maximum: 2000
+        delimiter:
+          type: string
+
     RetrievalRequest:
       type: object
-      required: [question, datasetIds]
+      required: [question, dataset_ids]
       properties:
         question:
           type: string
           minLength: 1
-        datasetIds:
+          maxLength: 4000
+        dataset_ids:
           type: array
           items:
             type: string
           minItems: 1
-        topK:
+        strategy:
+          type: string
+          enum: [hybrid, vector, keyword]
+        top_k:
           type: integer
           minimum: 1
           maximum: 100
           default: 10
-        similarityThreshold:
+        similarity_threshold:
           type: number
           format: float
           minimum: 0
           maximum: 1
-          default: 0.2
+
     RetrievalResponse:
       type: object
       required: [question, results]
@@ -357,6 +1114,7 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/RetrievalChunk'
+
     RetrievalChunk:
       type: object
       required: [content, score, documentId, datasetId]
@@ -374,12 +1132,141 @@ components:
           type: string
         pageNumber:
           type: integer
+
+    ChatCreate:
+      type: object
+      required: [name]
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 255
+        dataset_ids:
+          type: array
+          items:
+            type: string
+
+    ChatCompletionRequest:
+      type: object
+      required: [question]
+      properties:
+        question:
+          type: string
+          minLength: 1
+          maxLength: 4000
+        session_id:
+          type: string
+        dataset_ids:
+          type: array
+          items:
+            type: string
+        model:
+          type: string
+        stream:
+          type: boolean
+          default: true
+
+    ChatMessage:
+      type: object
+      required: [id, sessionId, role, content, createdAt]
+      properties:
+        id:
+          type: string
+        sessionId:
+          type: string
+        role:
+          type: string
+          enum: [user, assistant]
+        content:
+          type: string
+        citations:
+          type: array
+          items:
+            $ref: '#/components/schemas/RetrievalChunk'
+        createdAt:
+          type: string
+          format: date-time
+
+    SessionCreate:
+      type: object
+      properties:
+        session_id:
+          type: string
+          description: Optional client-provided session ID
+
+    CurrentUser:
+      type: object
+      required: [id, name, email, role]
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        email:
+          type: string
+          format: email
+        role:
+          type: string
+          enum: [owner, admin, member]
+        avatarUrl:
+          type: string
+
+    TeamMember:
+      type: object
+      required: [id, name, email, role, status, joinedAt]
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        email:
+          type: string
+        role:
+          type: string
+          enum: [owner, admin, member, readonly]
+        status:
+          type: string
+          enum: [active, invited, suspended]
+        avatarUrl:
+          type: string
+        joinedAt:
+          type: string
+          format: date-time
+
+    TeamInvite:
+      type: object
+      required: [email, role]
+      properties:
+        email:
+          type: string
+          format: email
+        role:
+          type: string
+          enum: [admin, member, readonly]
+
+    UsageStats:
+      type: object
+      properties:
+        documentsUploaded:
+          type: integer
+        chunksCreated:
+          type: integer
+        apiCalls:
+          type: integer
+        quota:
+          type: number
+          nullable: true
+        period:
+          type: string
+          enum: [day, month, year]
+
     Error:
       type: object
       required: [code, message]
       properties:
         code:
-          type: string
+          type: integer
+          description: Error code (matches ApiResponse.code on error)
         message:
           type: string
         details:
