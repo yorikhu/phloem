@@ -18,6 +18,7 @@ import { teamHandlers } from './team.js';
 import { mcpHandlers } from './mcp.js';
 import { sourceHandlers } from './sources.js';
 import { channelHandlers } from './channels.js';
+import { apikeyHandlers } from './apikey.js';
 
 export const handlers = [
   ...commonHandlers,
@@ -33,4 +34,5 @@ export const handlers = [
   ...mcpHandlers,
   ...sourceHandlers,
   ...channelHandlers,
+  ...apikeyHandlers,
 ];

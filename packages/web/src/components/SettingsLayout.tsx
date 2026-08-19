@@ -11,6 +11,7 @@ import {
   DatabaseOutlined,
   MessageOutlined,
   ApiOutlined,
+  KeyOutlined,
 } from '@ant-design/icons';
 import { Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { useI18n } from '../i18n/index.js';
@@ -27,6 +28,7 @@ export default function SettingsLayout() {
     { key: '/settings/sources', icon: <DatabaseOutlined />, label: t('settings.nav.sources') },
     { key: '/settings/channels', icon: <MessageOutlined />, label: t('settings.nav.channels') },
     { key: '/settings/mcp', icon: <ApiOutlined />, label: t('settings.nav.mcp') },
+    { key: '/settings/apikeys', icon: <KeyOutlined />, label: t('settings.nav.apikeys') },
   ];
 
   const activeKey =

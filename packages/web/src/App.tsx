@@ -11,6 +11,7 @@ import TeamSettingsPage from './pages/TeamSettings.js';
 import McpSettingsPage from './pages/McpSettings.js';
 import SourcesSettingsPage from './pages/SourcesSettings.js';
 import ChannelsSettingsPage from './pages/ChannelsSettings.js';
+import ApiKeysSettingsPage from './pages/ApiKeysSettings.js';
 import DocumentDetailPage from './pages/DocumentDetail.js';
 
 export default function App() {
@@ -28,6 +29,7 @@ export default function App() {
           <Route path="team" element={<TeamSettingsPage />} />
           <Route path="sources" element={<SourcesSettingsPage />} />
           <Route path="channels" element={<ChannelsSettingsPage />} />
+          <Route path="apikeys" element={<ApiKeysSettingsPage />} />
           <Route path="mcp" element={<McpSettingsPage />} />
         </Route>
       </Routes>
