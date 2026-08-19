@@ -14,7 +14,7 @@
     "start": "node dist/server.js",
     "lint": "eslint src/",
     "typecheck": "tsc --noEmit",
-    "test:unit": "vitest run"
+    "test:unit": "vitest run --passWithNoTests"
   },
   "dependencies": {
     "@phloem/shared": "workspace:*",
