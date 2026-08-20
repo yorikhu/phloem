@@ -25,4 +25,3 @@ if (!parsed.success) {
 
 export const env = parsed.data;
 export type Env = z.infer<typeof envSchema>;
-// lint-staged trigger test
