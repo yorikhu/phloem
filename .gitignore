@@ -8,6 +8,10 @@ build/
 coverage/
 *.tsbuildinfo
 
+# Next.js
+.next/
+out/
+
 # Environment
 .env
 .env.local

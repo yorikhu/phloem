@@ -18,6 +18,15 @@ export default tseslint.config(
     },
   },
   {
-    ignores: ['dist/', 'build/', 'coverage/', '.turbo/', 'vendor/'],
+    ignores: [
+      'dist/',
+      'build/',
+      'coverage/',
+      '.turbo/',
+      'vendor/',
+      '.next/',
+      'out/',
+      '**/next-env.d.ts',
+    ],
   },
 );
