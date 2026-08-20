@@ -8,7 +8,12 @@
     "tsBuildInfoFile": "./dist/.tsbuildinfo",
     "lib": ["ES2022"],
     "types": ["node"],
-    "exactOptionalPropertyTypes": false
+    "exactOptionalPropertyTypes": false,
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true,
+    "target": "ES2022",
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext"
   },
   "include": ["src"],
   "references": [{ "path": "../shared" }]
