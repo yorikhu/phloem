@@ -7,7 +7,9 @@ export default defineConfig({
     port: 5173,
     proxy: {
       '/api': {
-        target: 'http://localhost:3000',
+        // Cloud gateway via SSH tunnel (or local gateway when running one).
+        // Override with VITE_PROXY_TARGET when a local dev gateway is up.
+        target: process.env.VITE_PROXY_TARGET ?? 'http://127.0.0.1:13000',
         changeOrigin: true,
       },
     },
