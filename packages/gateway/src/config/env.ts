@@ -9,9 +9,7 @@ import 'dotenv/config';
 const envSchema = z.object({
   PHLOEM_PORT: z.coerce.number().int().positive().default(3000),
   PHLOEM_HOST: z.string().default('0.0.0.0'),
-  PHLOEM_LOG_LEVEL: z
-    .enum(['fatal', 'error', 'warn', 'info', 'debug', 'trace'])
-    .default('info'),
+  PHLOEM_LOG_LEVEL: z.enum(['fatal', 'error', 'warn', 'info', 'debug', 'trace']).default('info'),
   PHLOEM_ADAPTER_TYPE: z.enum(['mock', 'ragflow']).default('mock'),
   PHLOEM_RAGFLOW_URL: z.string().url().default('http://localhost:9380'),
   PHLOEM_RAGFLOW_API_KEY: z.string().optional(),
@@ -27,3 +25,4 @@ if (!parsed.success) {
 
 export const env = parsed.data;
 export type Env = z.infer<typeof envSchema>;
+// lint-staged trigger test
