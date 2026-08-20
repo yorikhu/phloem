@@ -12,12 +12,14 @@ export const LOCALE_STORAGE_KEY = 'phloem.locale';
 
 /** Persisted-preference → navigator → en, in order. */
 export function detectLocale(): Locale {
+  if (typeof window === 'undefined') return 'en';
   const saved = localStorage.getItem(LOCALE_STORAGE_KEY);
   if (saved === 'en' || saved === 'zh') return saved;
   return navigator.language.toLowerCase().startsWith('zh') ? 'zh' : 'en';
 }
 
 export function persistLocale(locale: Locale): void {
+  if (typeof window === 'undefined') return;
   localStorage.setItem(LOCALE_STORAGE_KEY, locale);
 }
 

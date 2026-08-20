@@ -25,6 +25,7 @@ type ThemeContextValue = {
 const ThemeContext = createContext<ThemeContextValue | null>(null);
 
 function detectTheme(): ThemeMode {
+  if (typeof window === 'undefined') return 'dark';
   try {
     const saved = localStorage.getItem(THEME_STORAGE_KEY);
     if (saved === 'dark' || saved === 'light') return saved;
@@ -35,6 +36,7 @@ function detectTheme(): ThemeMode {
 }
 
 function applyTheme(mode: ThemeMode): void {
+  if (typeof document === 'undefined') return;
   document.documentElement.dataset.theme = mode;
 }
 

@@ -17,7 +17,7 @@ Phloem is an enterprise-grade, self-hosted knowledge base platform built on RAGF
 ```
 ┌────────────┐   REST    ┌─────────────┐            ┌──────────────┐
 │  Web UI    │──────────▶│   Gateway   │──adapter──▶│   RAGFlow    │
-│  (React)   │           │  (Fastify)  │            │  (submodule) │
+│  (Next.js) │           │  (NestJS)   │            │  (submodule) │
 └────────────┘           └──────┬──────┘            └──────────────┘
                                 │
                          ┌──────┴──────┐
@@ -27,13 +27,13 @@ Phloem is an enterprise-grade, self-hosted knowledge base platform built on RAGF
 
 ## Packages
 
-| Package                                 | Description                            |
-| --------------------------------------- | -------------------------------------- |
-| [`@phloem/shared`](./packages/shared)   | Types, Zod schemas, API contracts      |
-| [`@phloem/gateway`](./packages/gateway) | Fastify API gateway with adapter layer |
-| [`@phloem/mcp`](./packages/mcp)         | MCP server exposing knowledge tools    |
-| [`@phloem/web`](./packages/web)         | React web console (dark, minimal)      |
-| `@phloem/eslint-config`                 | Shared ESLint flat config              |
+| Package                                 | Description                                     |
+| --------------------------------------- | ----------------------------------------------- |
+| [`@phloem/shared`](./packages/shared)   | Types, Zod schemas, API contracts               |
+| [`@phloem/gateway`](./packages/gateway) | NestJS (Fastify) API gateway with adapter layer |
+| [`@phloem/mcp`](./packages/mcp)         | MCP server exposing knowledge tools             |
+| [`@phloem/web`](./packages/web)         | Next.js 15 App Router console, static export    |
+| `@phloem/eslint-config`                 | Shared ESLint flat config                       |
 
 ## Getting Started
 
@@ -52,14 +52,14 @@ pnpm install
 cp deploy/docker/.env.example deploy/docker/.env
 ```
 
-### Run (mock mode — no backend needed)
+### Run (dev)
 
 ```bash
 # Gateway
 pnpm --filter @phloem/gateway dev
 
-# Web console (mock data via MSW)
-VITE_API_MODE=mock pnpm --filter @phloem/web dev
+# Web console (Next.js dev server, port 5273)
+pnpm --filter @phloem/web dev
 ```
 
 ### Run (with RAGFlow)

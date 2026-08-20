@@ -38,6 +38,7 @@ export function useVoiceInput({ onResult, unsupportedMessage }: VoiceInputOption
   const [listening, setListening] = useState(false);
 
   const supported = useMemo(() => {
+    if (typeof window === 'undefined') return false;
     const w = window as typeof window & {
       SpeechRecognition?: unknown;
       webkitSpeechRecognition?: unknown;

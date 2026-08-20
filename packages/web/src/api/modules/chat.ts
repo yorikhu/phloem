@@ -42,9 +42,7 @@ export const chat = {
  *     if (event.type === 'done') finish(event.sessionId);
  *   }
  */
-export async function* chatStream(
-  body: ChatRequest,
-): AsyncGenerator<{
+export async function* chatStream(body: ChatRequest): AsyncGenerator<{
   type: 'delta' | 'done' | 'error';
   content?: string;
   citations?: ChatMessage['citations'];

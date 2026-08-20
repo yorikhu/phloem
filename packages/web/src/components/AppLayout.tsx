@@ -7,7 +7,7 @@
 
 import { useState } from 'react';
 import { Layout } from 'antd';
-import { useLocation } from 'react-router-dom';
+import { useLocation } from '@/src/router-shim';
 import AppSider from './AppSider';
 import CommandPalette from './CommandPalette';
 import SettingsModal from './SettingsModal';

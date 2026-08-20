@@ -13,10 +13,10 @@ import {
   ApiOutlined,
   KeyOutlined,
 } from '@ant-design/icons';
-import { Outlet, useLocation, useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from '@/src/router-shim';
 import { useI18n } from '../i18n/index.js';
 
-export default function SettingsLayout() {
+export default function SettingsLayout({ children }: { children?: React.ReactNode }) {
   const { t } = useI18n();
   const navigate = useNavigate();
   const location = useLocation();
@@ -109,7 +109,7 @@ export default function SettingsLayout() {
           background: 'var(--ph-bg-base)',
         }}
       >
-        <Outlet />
+        {children}
       </div>
     </div>
   );

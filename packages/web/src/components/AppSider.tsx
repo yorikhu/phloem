@@ -22,7 +22,7 @@ import {
   UserOutlined,
   CloudServerOutlined,
 } from '@ant-design/icons';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate, useLocation } from '@/src/router-shim';
 import { useQuery } from '@tanstack/react-query';
 import PixelSprout from './PixelSprout';
 import UserAvatar from './UserAvatar';

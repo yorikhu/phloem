@@ -9,7 +9,7 @@
  */
 
 import { useState, useRef, useEffect, useMemo, useCallback } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate } from '@/src/router-shim';
 import { useQuery } from '@tanstack/react-query';
 import {
   SearchOutlined,

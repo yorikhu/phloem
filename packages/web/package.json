@@ -1,41 +1,31 @@
 {
   "name": "@phloem/web",
   "version": "0.1.0",
-  "description": "Phloem Web UI — React-based knowledge base management interface",
+  "description": "Phloem Web UI — Next.js App Router, statically exported",
   "license": "Apache-2.0",
-  "type": "module",
+  "private": true,
   "scripts": {
-    "dev": "vite",
-    "build": "tsc -b && vite build",
-    "preview": "vite preview",
-    "lint": "eslint src/",
-    "typecheck": "tsc --noEmit",
-    "test:unit": "vitest run --passWithNoTests",
-    "test:e2e": "playwright test"
-  },
-  "dependencies": {
-    "@ant-design/icons": "^6.3.2",
-    "@phloem/shared": "workspace:*",
-    "@tanstack/react-query": "^5.62.7",
-    "antd": "^5.22.2",
-    "lucide-react": "^0.468.0",
-    "react": "^18.3.1",
-    "react-dom": "^18.3.1",
-    "react-router-dom": "^6.28.0",
-    "zustand": "^4.5.5"
+    "dev": "next dev -p 5273",
+    "build": "next build",
+    "serve": "npx serve out -p 5273",
+    "lint": "next lint",
+    "typecheck": "tsc --noEmit"
   },
   "devDependencies": {
+    "@types/node": "^22.15.0",
     "@types/react": "^19.1.0",
     "@types/react-dom": "^19.1.0",
-    "@vitejs/plugin-react": "^4.3.4",
-    "msw": "^2.6.8",
-    "typescript": "^5.7.2",
-    "vite": "^5.4.11",
-    "vitest": "^2.1.8"
+    "eslint-config-next": "^15.5.0",
+    "typescript": "^5.8.0"
   },
-  "msw": {
-    "workerDirectory": [
-      "public"
-    ]
+  "dependencies": {
+    "@phloem/shared": "workspace:*",
+    "@ant-design/icons": "^6.3.2",
+    "@tanstack/react-query": "^5.62.7",
+    "antd": "^5.27.0",
+    "next": "^15.5.0",
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0",
+    "zustand": "^5.0.5"
   }
 }

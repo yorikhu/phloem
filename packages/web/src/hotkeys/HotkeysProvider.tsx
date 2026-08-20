@@ -44,7 +44,9 @@ type Handler = () => void;
 
 export function HotkeysProvider({ children }: { children: React.ReactNode }) {
   const [hotkeys, setHotkeys] = useState(() =>
-    parseStoredHotkeys(localStorage.getItem(HOTKEY_STORAGE_KEY)),
+    typeof window === 'undefined'
+      ? DEFAULT_HOTKEYS
+      : parseStoredHotkeys(localStorage.getItem(HOTKEY_STORAGE_KEY)),
   );
   const handlersRef = useRef(new Map<HotkeyAction, Set<Handler>>());
 

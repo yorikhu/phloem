@@ -20,6 +20,7 @@ export type SettingsSnapshot = {
 const DRAFT_KEY = 'phloem.settings.draft';
 
 export function loadDraft(fallbackTheme: ThemeMode): SettingsSnapshot | null {
+  if (typeof window === 'undefined') return null;
   try {
     const raw = localStorage.getItem(DRAFT_KEY);
     if (!raw) return null;
@@ -36,9 +37,11 @@ export function loadDraft(fallbackTheme: ThemeMode): SettingsSnapshot | null {
 }
 
 export function saveDraft(draft: SettingsSnapshot): void {
+  if (typeof window === 'undefined') return;
   localStorage.setItem(DRAFT_KEY, JSON.stringify(draft));
 }
 
 export function clearDraft(): void {
+  if (typeof window === 'undefined') return;
   localStorage.removeItem(DRAFT_KEY);
 }
